@@ -1,0 +1,9 @@
+# Continuous replication of the chain-of-custody db to S3.
+# Credentials come from the EC2 instance role (IMDS); no keys here.
+dbs:
+  - path: /data/archive.db
+    replicas:
+      - type: s3
+        bucket: ${BACKUP_BUCKET}
+        path: litestream/archive.db
+        sync-interval: 10s

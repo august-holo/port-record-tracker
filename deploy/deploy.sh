@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Ship the working tree to the box and (re)start the stack — no SSH, no git remote.
+# Path: tar → S3 backup bucket → SSM command on the instance pulls + untars + restarts.
+#
+# Usage: deploy/deploy.sh            (reads instance id + bucket from terraform output)
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+INSTANCE_ID=$(terraform -chdir=infra output -raw instance_id)
+BUCKET=$(terraform -chdir=infra output -raw backup_bucket)
+KEY="deploys/tsa-$(date -u +%Y%m%dT%H%M%SZ).tar.gz"
+
+echo "→ packing working tree"
+tar --exclude .git --exclude .venv --exclude data --exclude node_modules \
+    --exclude .next --exclude __pycache__ \
+    -czf /tmp/tsa-deploy.tar.gz .
+
+echo "→ uploading to s3://$BUCKET/$KEY"
+aws s3 cp /tmp/tsa-deploy.tar.gz "s3://$BUCKET/$KEY" --no-progress
+
+echo "→ deploying on $INSTANCE_ID"
+CMD_ID=$(aws ssm send-command \
+  --instance-ids "$INSTANCE_ID" \
+  --document-name AWS-RunShellScript \
+  --comment "tsa deploy $KEY" \
+  --parameters "commands=[
+    'set -e',
+    'aws s3 cp s3://$BUCKET/$KEY /tmp/tsa-deploy.tar.gz --no-progress',
+    'mkdir -p /opt/tsa && tar -xzf /tmp/tsa-deploy.tar.gz -C /opt/tsa',
+    'systemctl restart tsa.service'
+  ]" \
+  --query Command.CommandId --output text)
+
+aws ssm wait command-executed --command-id "$CMD_ID" --instance-id "$INSTANCE_ID" || true
+aws ssm get-command-invocation --command-id "$CMD_ID" --instance-id "$INSTANCE_ID" \
+  --query '{status: Status, stdout: StandardOutputContent, stderr: StandardErrorContent}' --output table

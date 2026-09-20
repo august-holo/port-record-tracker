@@ -1,0 +1,15 @@
+# Public surface only: the exhibit UI, the JSON API, and raw capture bodies.
+# The /captures dashboard stays internal (SSM port-forward to api:8100).
+{$FQDN} {
+	encode gzip
+
+	handle /api/* {
+		reverse_proxy api:8100
+	}
+	handle /raw/* {
+		reverse_proxy api:8100
+	}
+	handle {
+		reverse_proxy web:3000
+	}
+}

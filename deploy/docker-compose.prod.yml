@@ -1,0 +1,61 @@
+# Production overlay:
+#   docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d
+#
+# Adds: caddy (TLS, the only public entry), litestream (continuous db replica
+# to S3), raw-sync (hourly immutable raw-body sync to S3). Containers use the
+# instance role via IMDS; no AWS keys on disk.
+
+services:
+  api:
+    ports: !override [] # only reachable via caddy
+
+  web:
+    ports: !override []
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      FQDN: ${FQDN}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - web
+      - api
+    restart: unless-stopped
+
+  litestream:
+    image: litestream/litestream:latest
+    command: replicate -config /etc/litestream.yml
+    environment:
+      BACKUP_BUCKET: ${BACKUP_BUCKET}
+    volumes:
+      - ./deploy/litestream.yml:/etc/litestream.yml:ro
+      - ./data:/data
+    restart: unless-stopped
+
+  raw-sync:
+    image: amazon/aws-cli:latest
+    entrypoint: ["/bin/sh", "-c"]
+    # raw bodies are content-addressed and immutable, so sync is idempotent;
+    # --size-only avoids re-hashing unchanged files every pass.
+    command:
+      - |
+        while true; do
+          aws s3 sync /data/raw "s3://$${BACKUP_BUCKET}/raw" --size-only --no-progress
+          sleep 3600
+        done
+    environment:
+      BACKUP_BUCKET: ${BACKUP_BUCKET}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+    volumes:
+      - ./data:/data:ro
+    restart: unless-stopped
+
+volumes:
+  caddy-data:
+  caddy-config:
