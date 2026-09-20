@@ -26,7 +26,7 @@ from bs4 import BeautifulSoup
 from . import store
 
 PT = ZoneInfo("America/Los_Angeles")
-PARSER_VERSION = 5
+PARSER_VERSION = 6
 
 MONTHS = {
     m: i
@@ -547,6 +547,52 @@ def parse_nwsa_turn_feed(raw: bytes, ref: date) -> list[dict]:
     return rows
 
 
+# ---------- appointment platform status page ----------
+
+def _pt_dates_between(start_utc: str, end_utc: str | None, fallback_end: date) -> list[str]:
+    start = datetime.fromisoformat(start_utc.replace("Z", "+00:00")).astimezone(PT).date()
+    end = datetime.fromisoformat(end_utc.replace("Z", "+00:00")).astimezone(PT).date() if end_utc else fallback_end
+    return [date.fromordinal(o).isoformat() for o in range(start.toordinal(), max(start, end).toordinal() + 1)][:60]
+
+
+def parse_statuspage_incidents(raw: bytes, ref: date) -> list[dict]:
+    """Incidents the appointment platform's operator posted about eModal on its public status page.
+
+    Each becomes a port-wide notice on every Pacific day it was open (an unresolved one runs to the
+    capture date). The times are the operator's own, so incidents older than this archive still count;
+    the capture proves only what the status page said when it was fetched.
+    """
+    rows = []
+    for inc in json.loads(raw).get("incidents", []):
+        components = [c["name"] for c in inc.get("components", [])]
+        if not any("emodal" in c.lower() for c in components):
+            continue
+        updates = sorted(inc.get("incident_updates", []), key=lambda u: u["created_at"])
+        first = updates[0]["body"] if updates else ""
+        started = inc.get("started_at") or inc["created_at"]
+        rows.append(
+            {
+                "kind": "notice",
+                "entity_key": f"eModal|incident|{inc['id']}",
+                "terminal": None,
+                "source": "eModal status page",
+                "title": inc["name"],
+                "text": f"eModal status page ({inc.get('impact')} incident): {inc['name']}. {first}".strip(),
+                "url": inc.get("shortlink"),
+                "impact": inc.get("impact"),
+                "status": inc.get("status"),
+                "components": components,
+                "started_utc": started,
+                "resolved_utc": inc.get("resolved_at"),
+                "posted_iso": _pt_dates_between(started, started, ref)[0],
+                "dates_mentioned": _pt_dates_between(started, inc.get("resolved_at"), ref),
+                "keywords": ["appointment system"],
+                "updates": [{"at_utc": u["created_at"], "status": u["status"], "body": u["body"]} for u in updates],
+            }
+        )
+    return rows
+
+
 # ---------- gate cameras ----------
 
 def parse_camera(raw: bytes, terminal: str | None, camera: str | None) -> list[dict]:
@@ -685,6 +731,8 @@ def parse_emodal_slots(raw: bytes, ref: date) -> list[dict]:
 def run_parser(parser: str, raw: bytes, terminal: str | None, ref: date, src: dict | None = None) -> list[dict]:
     if parser == "nwsa_turn_feed":
         return parse_nwsa_turn_feed(raw, ref)
+    if parser == "statuspage_incidents":
+        return parse_statuspage_incidents(raw, ref)
     if parser == "camera":
         return parse_camera(raw, terminal, (src or {}).get("camera"))
     if parser == "terminal_page":

@@ -238,3 +238,19 @@ def test_camera_frame_must_be_an_image():
     assert rows[0]["kind"] == "camera_frame" and rows[0]["entity_key"] == "T5|camera|ingate" and rows[0]["image"] == "jpeg"
     with pytest.raises(ValueError):
         parse.parse_camera(b"<html>camera offline</html>", "T5", "ingate")
+
+
+# ---------- appointment platform status page ----------
+
+def test_emodal_status_incident_becomes_a_dated_port_wide_notice():
+    rows = parse.parse_statuspage_incidents(load("emodal_status_incidents.json"), REF)
+    stuck = next(r for r in rows if "Stuck in Pending" in r["title"])
+    assert stuck["kind"] == "notice" and stuck["terminal"] is None and stuck["impact"] == "major"
+    assert stuck["dates_mentioned"] == ["2026-06-03"] and stuck["posted_iso"] == "2026-06-03"
+    assert "Tideworks marine terminals" in stuck["text"] and stuck["url"].startswith("https://stspg.io/")
+    assert [u["status"] for u in stuck["updates"]][0] == "investigating" and stuck["updates"][-1]["status"] == "resolved"
+
+
+def test_incident_spanning_midnight_covers_both_pacific_days():
+    assert parse._pt_dates_between("2026-06-04T05:00:00Z", "2026-06-05T09:00:00Z", REF) == ["2026-06-03", "2026-06-04", "2026-06-05"]
+    assert parse._pt_dates_between("2026-09-19T20:00:00Z", None, REF) == ["2026-09-19", "2026-09-20"]  # still open: runs to the capture date

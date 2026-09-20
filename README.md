@@ -59,7 +59,7 @@ docker compose run --rm api pytest -q        # same, inside the image
 ## Layout
 
 - `src/store.py` — append-only SQLite captures + content-addressed raw bodies; additive migrations
-- `src/capture.py` — source registry (23 sources: pages, the turn-time feed, 11 gate cameras, one mock) and fetchers; requests to one host are spaced 5 s apart
+- `src/capture.py` — source registry (24 sources: pages, the turn-time feed, the eModal status page, 11 gate cameras, one mock) and fetchers; requests to one host are spaced 5 s apart
 - `src/parse.py` — per-source parsers → `parsed_rows` (gate days, empty rules, notices, ERDs, turn times, slots)
 - `src/mock_emodal.py` — the labeled MOCK appointments channel
 - `src/api.py` — JSON: `/api/sources`, `/api/captures`, `/api/parsed`, `/api/exhibit`
@@ -83,4 +83,5 @@ docker compose run --rm api pytest -q        # same, inside the image
 | erd | NWSA + WUT export receiving | did the export window move | working |
 | turn_time | NWSA's RFID turn-time feed (socket.io) | congestion; N/A = fewer than 20 trucks/hour, the port's own closure signal | working |
 | camera | 11 gate camera stills linked from NWSA's cameras page | what the gate and its queue looked like | working, 05:00–19:00 PT |
+| appointment_system | eModal's public status page (incident history) | was the appointment platform itself down or degraded | working; history predates the archive |
 | slots | eModal `move/slots` | was an appointment available | MOCK, off unless `TSA_ENABLE_MOCK=1` |

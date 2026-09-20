@@ -239,6 +239,15 @@ def test_exhibit_shows_feed_readings_and_camera_frames_not_the_placeholder_page(
     assert t18["cameras"] is None
 
 
+def test_exhibit_shows_an_appointment_system_outage_from_before_the_archive_began(env):
+    parse = env["parse"]
+    cid = add_capture(env, "emodal_status", "emodal_status_incidents.json", "2026-09-20T22:00:00+00:00")
+    parse.parse_capture(cid)
+    d = env["client"].get("/api/exhibit?terminal=T18&start=2026-06-03&end=2026-06-03").json()["days"][0]
+    assert len(d["notices"]) == 1 and d["notices"][0]["evidence"] == cid
+    assert "Stuck in Pending" in d["notices"][0]["text"] and d["notices"][0]["scope"] == "port"
+
+
 def test_evening_capture_files_under_pacific_day(env):
     parse = env["parse"]
     # 02:00 UTC on the 21st is 19:00 PT on the 20th.

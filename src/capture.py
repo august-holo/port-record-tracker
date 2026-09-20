@@ -58,6 +58,7 @@ CAMERA_HOURS = {"hours": "5-18", "timezone": "America/Los_Angeles"}
 #   turn_time - queue / in-terminal minutes (congestion)
 #   camera    - gate camera stills: what the gate and its queue looked like
 #   erd       - export receiving windows
+#   appointment_system - outages of the appointment platform itself, from its public status page
 #   slots     - appointment availability (mock until we have eModal access)
 SOURCES: dict[str, dict] = {
     # --- export receiving (P25) ---
@@ -147,6 +148,16 @@ SOURCES: dict[str, dict] = {
         "terminal": "WUT",
         "channel": "empties",
         "parser": "wut_empties",
+    },
+    # --- the appointment platform's own status page (Statuspage API, published for machine use).
+    #     Its incident list carries its own timestamps, so it also covers dates before this
+    #     archive started. Linked from NWSA's eModal resources page. ---
+    "emodal_status": {
+        "url": "https://status.cargosprint.com/api/v2/incidents.json",
+        "cadence_minutes": 30,
+        "terminal": None,
+        "channel": "appointment_system",
+        "parser": "statuspage_incidents",
     },
     # --- gate cameras: the stills NWSA embeds on its cameras page "with the permission of our
     #     terminals". Captured while gates can be open; see CAMERAS below. ---

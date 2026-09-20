@@ -29,6 +29,8 @@ TERMINALS = ["T18", "T5", "Husky", "PCT", "WUT"]
 PUBLISHERS = {
     "nwseaportalliance.com": "Northwest Seaport Alliance (the port authority), compiling terminal operators' postings; updated weekdays by 9 a.m.",
     "uswut.com": "Washington United Terminals (HMM's Tacoma terminal), on its own site",
+    "status.cargosprint.com": "CargoSprint, the company that operates eModal, on its public status page",
+    "truckrfid-experience.azurewebsites.net": "Northwest Seaport Alliance: the RFID turn-time feed behind its cameras and turn times page",
     "mock": "Nobody. Synthetic data in the shape of eModal's appointments API, until access exists.",
 }
 

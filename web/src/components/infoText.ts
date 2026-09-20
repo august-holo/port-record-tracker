@@ -46,8 +46,8 @@ export const INFO: Record<string, InfoText> = {
   notices: {
     title: "Closure or restriction noticed?",
     what:
-      "Port bulletins and terminal notices that mention that date: unscheduled closures, blanket 'not accepting empties' notices, appointment changes. These are the port's own dated statements.",
-    from: "NWSA trucker news and the notice paragraphs on each terminal's update page, captured hourly to two-hourly.",
+      "Port bulletins and terminal notices that mention that date: unscheduled closures, blanket 'not accepting empties' notices, appointment changes. These are the port's own dated statements. Also listed: outages of eModal, the appointment system every terminal here uses, as its operator reported them on its public status page. Those carry the operator's own start and end times, so they cover dates from before this archive began.",
+    from: "NWSA trucker news, the notice paragraphs on each terminal's update page, and the eModal status page's incident history, captured every half hour to two hours.",
     link: { href: `${NWSA}/cargo-operations/trucker-resources/trucker-news-updates`, label: "NWSA trucker news" },
   },
   atGate: {

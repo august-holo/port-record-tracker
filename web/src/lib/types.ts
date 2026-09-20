@@ -7,7 +7,7 @@ export interface SourceInfo {
   url: string;
   publisher: string;
   terminal: string | null;
-  channel: "gate" | "empties" | "bulletin" | "turn_time" | "camera" | "erd" | "slots";
+  channel: "gate" | "empties" | "bulletin" | "turn_time" | "camera" | "appointment_system" | "erd" | "slots";
   cadence_minutes: number;
   mock: boolean;
   status: string;

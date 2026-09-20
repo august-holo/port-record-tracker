@@ -12,6 +12,7 @@ const USED: Record<SourceInfo["channel"], string> = {
   bulletin: "Notices column",
   turn_time: "At the gate column",
   camera: "At the gate column",
+  appointment_system: "Notices column",
   erd: "Not shown: export side, kept for another post",
   slots: "Appointment column (MOCK)",
 };
@@ -22,6 +23,7 @@ const CHANNEL_LABEL: Record<SourceInfo["channel"], string> = {
   bulletin: "Port notices",
   turn_time: "Truck turn times",
   camera: "Gate camera stills",
+  appointment_system: "Appointment system outages (eModal status page)",
   erd: "Export receiving windows",
   slots: "Appointment availability",
 };
