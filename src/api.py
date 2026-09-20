@@ -50,6 +50,10 @@ def _pt_date(fetched_at_utc: str) -> str:
     return datetime.fromisoformat(fetched_at_utc).astimezone(PT).date().isoformat()
 
 
+def _pt_time(fetched_at_utc: str) -> str:
+    return datetime.fromisoformat(fetched_at_utc).astimezone(PT).strftime("%H:%M")
+
+
 def _norm_equipment(e: str | None) -> str:
     if not e:
         return ""
@@ -325,20 +329,50 @@ def exhibit(
             )
         entry["notices"] = notices
 
-        # --- turn times: samples taken that day ---
-        tt = [(row, cap) for row, cap in captures_on("turn_time", day) if row.get("terminal") == terminal]
+        # --- turn times: RFID feed samples taken that day (the HTML page's "Connecting..." rows are not data) ---
+        tt = [
+            (row, cap)
+            for row, cap in captures_on("turn_time", day)
+            if row.get("terminal") == terminal and not row.get("placeholder")
+        ]
         if tt:
             qs = [row["queue_min"] for row, _ in tt if row.get("queue_min") is not None]
+            totals = [row["total_min"] for row, _ in tt if row.get("total_min") is not None]
             entry["turn_times"] = {
                 "samples": len(tt),
                 "na_samples": sum(1 for row, _ in tt if row.get("na")),
-                "placeholder_only": all(row.get("placeholder") for row, _ in tt),
+                "placeholder_only": False,
                 "queue_min_max": max(qs) if qs else None,
                 "queue_min_min": min(qs) if qs else None,
-                "evidence": sorted({use(cap) for _, cap in tt}),
+                "total_min_max": max(totals) if totals else None,
+                "readings": [
+                    {
+                        "at_pt": _pt_time(cap["fetched_at"]),
+                        "queue_min": row.get("queue_min"),
+                        "in_terminal_min": row.get("in_terminal_min"),
+                        "total_min": row.get("total_min"),
+                        "na": bool(row.get("na")),
+                        "capture_id": use(cap),
+                    }
+                    for row, cap in tt
+                ],
+                "evidence": sorted({cap["id"] for _, cap in tt}),
             }
         else:
             entry["turn_times"] = None
+
+        # --- gate cameras: stills taken that day ---
+        frames = [(row, cap) for row, cap in captures_on("camera_frame", day) if row.get("terminal") == terminal]
+        entry["cameras"] = (
+            {
+                "frames": [
+                    {"at_pt": _pt_time(cap["fetched_at"]), "camera": row.get("camera"), "capture_id": use(cap), "hash": cap["content_hash"]}
+                    for row, cap in frames
+                ]
+            }
+            if frames
+            else None
+        )
 
         # --- slots (mock until real) ---
         sl = [(row, cap) for row, cap in captures_on("slot_window", day) if row.get("terminal") == terminal]
@@ -388,6 +422,12 @@ def exhibit(
                 else any(q["samples_with_slot_that_day"] > 0 for q in s["queries"])
             ),
             "appointments_source_is_mock": bool(s and s["mock"]),
+            # From the RFID feed: did any reading that day show trucks getting through? NWSA reports N/A
+            # when fewer than 20 trucks passed in an hour. None = no readings that day.
+            "trucks_moving": (
+                None if entry["turn_times"] is None
+                else entry["turn_times"]["na_samples"] < entry["turn_times"]["samples"]
+            ),
             "government_hold": None,  # not this archive's fact; the importer's CBP record answers it
         }
         days.append(entry)

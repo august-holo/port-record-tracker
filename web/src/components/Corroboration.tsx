@@ -104,6 +104,65 @@ function NoticesCell({ d, caps }: { d: Day; caps: Record<number, Evidence> }) {
   );
 }
 
+const inWindow = (at: string, a: CheckDate) => (!a.from || at >= a.from) && (!a.to || at <= a.to);
+const mins = (m: number) => (m >= 60 ? `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, "0")}m` : `${m} min`);
+
+function AtGateCell({ d, a, caps }: { d: Day; a: CheckDate; caps: Record<number, Evidence> }) {
+  const readings = (d.turn_times?.readings ?? []).filter((r) => inWindow(r.at_pt, a));
+  const frames = (d.cameras?.frames ?? []).filter((f) => inWindow(f.at_pt, a));
+  if (!readings.length && !frames.length) return <Pill answer={null} />;
+
+  const na = readings.filter((r) => r.na).length;
+  const queues = readings.flatMap((r) => (r.queue_min === null ? [] : [r.queue_min]));
+  const totals = readings.flatMap((r) => (r.total_min === null ? [] : [r.total_min]));
+  const noTraffic = readings.length > 0 && na === readings.length;
+  const byCamera = new Map<string, typeof frames>();
+  frames.forEach((f) => byCamera.set(f.camera, [...(byCamera.get(f.camera) ?? []), f]));
+
+  return (
+    <>
+      {readings.length > 0 && (
+        <>
+          <span className={`${styles.pill} ${noTraffic ? styles.no : styles.yes}`}>
+            {noTraffic ? "no truck traffic recorded" : `queue up to ${mins(Math.max(...queues, 0))}`}
+          </span>
+          <div className={styles.detail}>
+            {readings.length} turn-time reading{readings.length > 1 ? "s" : ""}
+            {totals.length > 0 && <>, whole visit up to {mins(Math.max(...totals))}</>}
+            {na > 0 && (
+              <>
+                {" "}· <b>{na} read N/A</b> (fewer than 20 trucks in the hour)
+                {noTraffic && d.answers.gate_scheduled_open && <> while the gate was scheduled open</>}
+              </>
+            )}
+          </div>
+          <EvidenceList ids={[readings[0].capture_id, readings[readings.length - 1].capture_id]} caps={caps} />
+        </>
+      )}
+      {frames.length > 0 && (
+        <details className={styles.detail}>
+          <summary>
+            {frames.length} gate camera image{frames.length > 1 ? "s" : ""}
+          </summary>
+          {[...byCamera.entries()].map(([camera, fs]) => (
+            <div key={camera}>
+              {camera}:{" "}
+              {fs.map((f, i) => (
+                <span key={f.capture_id}>
+                  {i > 0 && " "}
+                  <a href={`/raw/${f.hash}`} target="_blank" rel="noreferrer" title={`capture #${f.capture_id} · ${f.hash.slice(0, 12)}`}>
+                    {f.at_pt}
+                  </a>
+                </span>
+              ))}
+            </div>
+          ))}
+        </details>
+      )}
+    </>
+  );
+}
+
 function SlotsCell({ d, caps }: { d: Day; caps: Record<number, Evidence> }) {
   const s = d.slots;
   if (!s || !s.queries.length) return <Pill answer={null} text="no channel" />;
@@ -155,6 +214,9 @@ export default function Corroboration({ exhibit: x, dates }: { exhibit: Exhibit;
             <th>
               Closure or restriction noticed? <Info info={INFO.notices} />
             </th>
+            <th>
+              At the gate <Info info={INFO.atGate} />
+            </th>
             {showSlots && (
               <th>
                 Appointment available? <Info info={INFO.slots} />
@@ -178,10 +240,11 @@ export default function Corroboration({ exhibit: x, dates }: { exhibit: Exhibit;
                     <td><GateCell d={d} caps={caps} /></td>
                     <td><EmptiesCell d={d} caps={caps} /></td>
                     <td><NoticesCell d={d} caps={caps} /></td>
+                    <td><AtGateCell d={d} a={a} caps={caps} /></td>
                     {showSlots && <td><SlotsCell d={d} caps={caps} /></td>}
                   </>
                 ) : (
-                  <td colSpan={showSlots ? 4 : 3}><Pill answer={null} /></td>
+                  <td colSpan={showSlots ? 5 : 4}><Pill answer={null} /></td>
                 )}
               </tr>
             );

@@ -7,7 +7,7 @@ export interface SourceInfo {
   url: string;
   publisher: string;
   terminal: string | null;
-  channel: "gate" | "empties" | "bulletin" | "turn_time" | "erd" | "slots";
+  channel: "gate" | "empties" | "bulletin" | "turn_time" | "camera" | "erd" | "slots";
   cadence_minutes: number;
   mock: boolean;
   status: string;
@@ -75,13 +75,35 @@ export interface Notice {
   evidence: number;
 }
 
+export interface TurnReading {
+  at_pt: string; // HH:MM, America/Los_Angeles
+  queue_min: number | null;
+  in_terminal_min: number | null;
+  total_min: number | null;
+  na: boolean;
+  capture_id: number;
+}
+
 export interface TurnTimesFact {
   samples: number;
   na_samples: number;
   placeholder_only: boolean;
   queue_min_max: number | null;
   queue_min_min: number | null;
+  total_min_max: number | null;
+  readings: TurnReading[];
   evidence: number[];
+}
+
+export interface CameraFrame {
+  at_pt: string; // HH:MM, America/Los_Angeles
+  camera: string;
+  capture_id: number;
+  hash: string;
+}
+
+export interface CamerasFact {
+  frames: CameraFrame[];
 }
 
 export interface SlotQuery {
@@ -102,6 +124,7 @@ export interface Answers {
   unscheduled_closure_or_restriction_noticed: boolean | null;
   appointments_available: boolean | null;
   appointments_source_is_mock: boolean;
+  trucks_moving: boolean | null;
   government_hold: null;
 }
 
@@ -112,6 +135,7 @@ export interface Day {
   empties: EmptiesFact | null;
   notices: Notice[];
   turn_times: TurnTimesFact | null;
+  cameras: CamerasFact | null;
   slots: SlotsFact | null;
   answers: Answers;
 }

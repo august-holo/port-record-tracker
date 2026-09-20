@@ -26,6 +26,17 @@ def _now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def _expected_now(src: dict, now: datetime) -> bool:
+    """False for a source with active_hours when `now` is outside them (or the window has only just opened)."""
+    window = src.get("active_hours")
+    if not window:
+        return True
+    first, last = (int(h) for h in window["hours"].split("-"))
+    local = now.astimezone(ZoneInfo(window["timezone"]))
+    opened = local.replace(hour=first, minute=0, second=0, microsecond=0)
+    return first <= local.hour <= last and local - opened >= 2 * timedelta(minutes=src["cadence_minutes"])
+
+
 def run() -> dict:
     conn = store.connect()
     conn.row_factory = None
@@ -47,7 +58,10 @@ def run() -> dict:
             add("fresh", False, "no successful capture yet", sid)
             continue
         age = now - datetime.fromisoformat(last[0])
-        add("fresh", age <= 2 * cadence, f"last capture {int(age.total_seconds() // 60)} min ago (cadence {src['cadence_minutes']})", sid)
+        if _expected_now(src, now):
+            add("fresh", age <= 2 * cadence, f"last capture {int(age.total_seconds() // 60)} min ago (cadence {src['cadence_minutes']})", sid)
+        else:
+            add("fresh", True, f"outside capture hours ({src['active_hours']['hours']} PT); last capture {int(age.total_seconds() // 60)} min ago", sid)
 
         errs = conn.execute(
             "SELECT COUNT(*) FROM captures WHERE source_id = ? AND error IS NOT NULL AND fetched_at >= ?", (sid, since_24h)

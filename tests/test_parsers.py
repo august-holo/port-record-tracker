@@ -216,3 +216,25 @@ def test_parse_date_token(tok, expected):
 )
 def test_status(cell, expected):
     assert parse._status(cell) == expected
+
+
+# ---------- turn-time feed and gate cameras ----------
+
+def test_turn_feed_reads_minutes_and_na():
+    rows = {r["terminal"]: r for r in parse.parse_nwsa_turn_feed(load("nwsa_turn_feed.txt"), REF)}
+    assert {"T5", "T18", "Husky", "PCT", "WUT"} <= set(rows)
+    husky = rows["Husky"]  # captured on a Sunday: Husky was working, the others reported N/A
+    assert husky["queue_min"] == 13 and husky["in_terminal_min"] == 33 and husky["total_min"] == 46
+    assert husky["na"] is False and husky["feed_updated_utc"].startswith("2026-09-20T")
+    assert rows["T18"]["na"] is True and rows["T18"]["queue_min"] is None
+
+
+def test_minutes_formats():
+    assert [parse._minutes(v) for v in ("0hr 32m", "1hr 05m", "2hr", "47", "N/A", "", None)] == [32, 65, 120, 47, None, None, None]
+
+
+def test_camera_frame_must_be_an_image():
+    rows = parse.parse_camera(b"\xff\xd8\xff\xe0" + b"0" * 100, "T5", "ingate")
+    assert rows[0]["kind"] == "camera_frame" and rows[0]["entity_key"] == "T5|camera|ingate" and rows[0]["image"] == "jpeg"
+    with pytest.raises(ValueError):
+        parse.parse_camera(b"<html>camera offline</html>", "T5", "ingate")

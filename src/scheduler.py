@@ -54,6 +54,19 @@ def main() -> None:
     # runs missed while the machine slept collapse into one.
     sched = BlockingScheduler(timezone="UTC", job_defaults={"misfire_grace_time": 300, "coalesce": True})
     for source_id, src in sources.items():
+        window = src.get("active_hours")
+        if window:
+            sched.add_job(
+                capture_source,
+                "cron",
+                minute=f"*/{src['cadence_minutes']}",
+                hour=window["hours"],
+                timezone=window["timezone"],
+                jitter=120,  # spreads the cameras out instead of queueing them on the minute
+                args=[source_id],
+                id=source_id,
+            )
+            continue
         sched.add_job(
             capture_source,
             "interval",

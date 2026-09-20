@@ -10,7 +10,8 @@ const USED: Record<SourceInfo["channel"], string> = {
   gate: "Gate column",
   empties: "Empties column",
   bulletin: "Notices column",
-  turn_time: "Not shown: numbers load by script, not in the HTML",
+  turn_time: "At the gate column",
+  camera: "At the gate column",
   erd: "Not shown: export side, kept for another post",
   slots: "Appointment column (MOCK)",
 };
@@ -20,6 +21,7 @@ const CHANNEL_LABEL: Record<SourceInfo["channel"], string> = {
   empties: "Empty-return acceptance by line and size",
   bulletin: "Port notices",
   turn_time: "Truck turn times",
+  camera: "Gate camera stills",
   erd: "Export receiving windows",
   slots: "Appointment availability",
 };
@@ -64,7 +66,7 @@ export default function Channels() {
                     </a>
                   )}
                 </td>
-                <td>every {s.cadence_minutes} min</td>
+                <td>every {s.cadence_minutes} min{s.channel === "camera" ? ", 5 a.m.–7 p.m." : ""}</td>
                 <td>
                   {s.captures ? `${s.captures} captures, last ${fmt(s.last)} UTC` : "none yet"}
                   {s.errors ? ` · ${s.errors} errors` : ""}

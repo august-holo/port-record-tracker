@@ -29,6 +29,8 @@ UI_DIR = Path(__file__).resolve().parent.parent / "ui"
 if UI_DIR.exists():
     app.mount("/ui", StaticFiles(directory=str(UI_DIR), html=True), name="ui")
 
+MEDIA_TYPES = {".json": "application/json", ".jpg": "image/jpeg", ".png": "image/png", ".txt": "text/plain"}
+
 STYLE = """
 <style>
   body { font-family: ui-monospace, Menlo, monospace; margin: 2rem; color: #222; }
@@ -168,9 +170,12 @@ def raw(content_hash: str, download: int = 0):
         conn.close()
         stamp = (cap[1] if cap else "").replace(":", "").replace("+0000", "Z")
         name = f"{cap[0] if cap else 'capture'}_{stamp}_{content_hash[:12]}{path.suffix}"
-        media = "application/json" if path.suffix == ".json" else "text/html"
-        return FileResponse(path, media_type=media, filename=name)
+        return FileResponse(path, media_type=MEDIA_TYPES.get(path.suffix, "text/html"), filename=name)
     headers = {"Content-Security-Policy": "sandbox; default-src 'none'; img-src data:; style-src 'unsafe-inline'"}
+    if path.suffix in (".jpg", ".png"):
+        return FileResponse(path, media_type=MEDIA_TYPES[path.suffix], headers=headers)
+    if path.suffix == ".txt":
+        return PlainTextResponse(path.read_text(errors="replace"), headers=headers)
     if path.suffix == ".json":
         return PlainTextResponse(path.read_text(errors="replace"), media_type="application/json", headers=headers)
     return HTMLResponse(path.read_text(errors="replace"), headers=headers)

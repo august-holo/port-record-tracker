@@ -26,7 +26,7 @@ from bs4 import BeautifulSoup
 from . import store
 
 PT = ZoneInfo("America/Los_Angeles")
-PARSER_VERSION = 4
+PARSER_VERSION = 5
 
 MONTHS = {
     m: i
@@ -510,6 +510,62 @@ def parse_nwsa_turn_times(raw: bytes, ref: date) -> list[dict]:
     return rows
 
 
+def _minutes(v) -> int | None:
+    """'0hr 32m' -> 32, '1hr 05m' -> 65, '47' -> 47, 'N/A' -> None."""
+    t = str(v or "").strip().lower()
+    m = re.fullmatch(r"(?:(\d+)\s*hr)?\s*(?:(\d+)\s*m(?:in)?)?", t)
+    if m and (m.group(1) or m.group(2)):
+        return int(m.group(1) or 0) * 60 + int(m.group(2) or 0)
+    return int(t) if t.isdigit() else None
+
+
+def parse_nwsa_turn_feed(raw: bytes, ref: date) -> list[dict]:
+    """The socket.io polling payload behind NWSA's turn-times page: one `42["data", {...}]` packet.
+
+    NWSA's page defines N/A as fewer than 20 trucks through the gate in the last 60 minutes,
+    "which may be attributed to terminal closures and lunch breaks".
+    """
+    packet = next((pk for pk in raw.split(b"\x1e") if pk.startswith(b'42["data"')), None)
+    if packet is None:
+        raise ValueError("no data packet in turn-time feed payload")
+    rows = []
+    for terminal, v in json.loads(packet[2:])[1].items():
+        q, it, total = _minutes(v.get("Queue")), _minutes(v.get("In-Terminal")), _minutes(v.get("Total Experience"))
+        rows.append(
+            {
+                "kind": "turn_time",
+                "entity_key": f"{terminal}|turn_time",
+                "terminal": terminal,
+                "queue_min": q,
+                "in_terminal_min": it,
+                "total_min": total,
+                "na": q is None and it is None,
+                "feed_updated_utc": v.get("updated"),
+                "raw": {k: v.get(k) for k in ("Queue", "In-Terminal", "Total Experience")},
+            }
+        )
+    return rows
+
+
+# ---------- gate cameras ----------
+
+def parse_camera(raw: bytes, terminal: str | None, camera: str | None) -> list[dict]:
+    """A still has no facts to read out; the row records that a real image was captured."""
+    kind = "jpeg" if raw[:3] == b"\xff\xd8\xff" else ("png" if raw[:8] == b"\x89PNG\r\n\x1a\n" else None)
+    if kind is None:
+        raise ValueError(f"camera returned {len(raw)} bytes that are not an image")
+    return [
+        {
+            "kind": "camera_frame",
+            "entity_key": f"{terminal}|camera|{camera}",
+            "terminal": terminal,
+            "camera": camera,
+            "image": kind,
+            "bytes": len(raw),
+        }
+    ]
+
+
 # ---------- ERD pages ----------
 
 WUT_ERD_HEADER = ["ssco", "voyage", "vessel", "svc", "erd", "cutoff", "etb", "etd"]
@@ -626,7 +682,11 @@ def parse_emodal_slots(raw: bytes, ref: date) -> list[dict]:
 
 # ---------- dispatch ----------
 
-def run_parser(parser: str, raw: bytes, terminal: str | None, ref: date) -> list[dict]:
+def run_parser(parser: str, raw: bytes, terminal: str | None, ref: date, src: dict | None = None) -> list[dict]:
+    if parser == "nwsa_turn_feed":
+        return parse_nwsa_turn_feed(raw, ref)
+    if parser == "camera":
+        return parse_camera(raw, terminal, (src or {}).get("camera"))
     if parser == "terminal_page":
         return parse_terminal_page(raw, terminal or "?", ref)
     if parser == "wut_empties":
@@ -669,7 +729,7 @@ def parse_capture(capture_id: int, force: bool = False, conn: sqlite3.Connection
             raise FileNotFoundError(f"raw body {content_hash} missing")
         ref = datetime.fromisoformat(fetched_at).astimezone(PT).date()
         try:
-            rows = run_parser(src["parser"], path.read_bytes(), src.get("terminal"), ref)
+            rows = run_parser(src["parser"], path.read_bytes(), src.get("terminal"), ref, src)
         except Exception as exc:  # noqa: BLE001
             conn.execute(
                 "INSERT INTO parse_errors (capture_id, source_id, error, at) VALUES (?, ?, ?, ?)",

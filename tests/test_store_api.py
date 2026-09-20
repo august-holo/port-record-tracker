@@ -212,6 +212,33 @@ def test_mock_channel_is_hidden_unless_switched_on(env, monkeypatch):
     assert any(s["mock"] for s in env["client"].get("/api/sources").json()["sources"])
 
 
+def test_exhibit_shows_feed_readings_and_camera_frames_not_the_placeholder_page(env):
+    parse = env["parse"]
+    store = env["store"]
+    for sid, fx in (("nwsa_turn_times", "nwsa_turn_times.html"), ("nwsa_turn_feed", "nwsa_turn_feed.txt")):
+        parse.parse_capture(add_capture(env, sid, fx, "2026-09-20T22:53:00+00:00"))
+    # a camera still
+    h = store.store_raw(b"\xff\xd8\xff\xe0" + b"0" * 64, "jpg")
+    conn = store.connect()
+    cam = store.record_capture(conn, "cam_husky_cam3", "https://example.invalid/cam.jpg", 200, h, content_type="image/jpeg")
+    conn.execute("UPDATE captures SET fetched_at = ? WHERE id = ?", ("2026-09-20T22:45:00+00:00", cam))
+    conn.commit()
+    conn.close()
+    parse.parse_capture(cam)
+
+    d = env["client"].get("/api/exhibit?terminal=Husky&start=2026-09-20&end=2026-09-20").json()["days"][0]
+    tt = d["turn_times"]
+    assert tt["samples"] == 1 and tt["na_samples"] == 0 and tt["queue_min_max"] == 13 and tt["total_min_max"] == 46
+    assert tt["readings"][0]["at_pt"] == "15:53"
+    assert d["answers"]["trucks_moving"] is True
+    assert d["cameras"]["frames"] == [{"at_pt": "15:45", "camera": "cam3", "capture_id": cam, "hash": h}]
+    assert env["client"].get(f"/raw/{h}").headers["content-type"] == "image/jpeg"
+
+    t18 = env["client"].get("/api/exhibit?terminal=T18&start=2026-09-20&end=2026-09-20").json()["days"][0]
+    assert t18["turn_times"]["na_samples"] == 1 and t18["answers"]["trucks_moving"] is False
+    assert t18["cameras"] is None
+
+
 def test_evening_capture_files_under_pacific_day(env):
     parse = env["parse"]
     # 02:00 UTC on the 21st is 19:00 PT on the 20th.

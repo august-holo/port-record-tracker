@@ -50,6 +50,14 @@ export const INFO: Record<string, InfoText> = {
     from: "NWSA trucker news and the notice paragraphs on each terminal's update page, captured hourly to two-hourly.",
     link: { href: `${NWSA}/cargo-operations/trucker-resources/trucker-news-updates`, label: "NWSA trucker news" },
   },
+  atGate: {
+    title: "What was happening at the gate?",
+    what:
+      "Two records of the gate itself, which do not depend on anyone posting a notice. Truck turn times: how long trucks waited in the queue and spent inside, sampled every 15 minutes. The port reports N/A when fewer than 20 trucks got through in the last hour, which it says may be attributed to terminal closures and lunch breaks; a day of N/A readings while the gate was scheduled open is worth a look. Gate cameras: still images of the gate and its queue, every 15 minutes from 5 a.m. to 7 p.m. If you gave a time window, only readings and images inside it are shown.",
+    from:
+      "The RFID turn-time feed behind the port's Cameras & Truck Turn Times page, and the terminals' own gate camera stills linked from that page. The numbers are the port's averages over the previous 60 minutes, not a measurement of any one truck.",
+    link: { href: `${NWSA}/cargo-operations/cameras-truck-turn-times`, label: "NWSA cameras and turn times" },
+  },
   slots: {
     title: "Appointment available?",
     what:
