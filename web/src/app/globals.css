@@ -1,0 +1,36 @@
+/* Follows creatingwithsystems.com (podcast_v1 GlobalStyles): Georgia body, Arial Black headings,
+   JetBrains Mono for labels and controls, orange accent, warm paper with an orange dot grid. */
+:root {
+  --color-accent: #ff6600;
+  --color-accent-hover: #e55a00;
+  --ink: #1a1a1a;
+  --muted: #6b6b6b;
+  --faint: #999;
+  --bg: #f0efe8;
+  --paper: rgba(255, 255, 255, 0.6);
+  --paper-solid: #fff;
+  --line: rgba(0, 0, 0, 0.15);
+  --line-soft: rgba(0, 0, 0, 0.08);
+  --yes: #2f6b3a; --yes-bg: #e4efe4;
+  --no: #a63a1e; --no-bg: #f6e6df;
+  --unk: #7a6a1f; --unk-bg: #f3ecd2;
+  --mock: #5b4bb5; --mock-bg: #ebe8f7;
+  --font-mono: var(--font-jetbrains), "JetBrains Mono", "Fira Code", "SF Mono", monospace;
+  --font-serif: Georgia, "Times New Roman", serif;
+  --font-heading: "Arial Black", "Helvetica Neue", Arial, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  font-family: var(--font-serif); line-height: 1.6; color: var(--ink);
+  background-color: var(--bg);
+  background-image: radial-gradient(circle, rgba(255, 102, 0, 0.18) 1px, transparent 1px);
+  background-size: 20px 20px; background-attachment: fixed;
+}
+h1, h2, h3 { font-family: var(--font-heading); font-weight: 900; letter-spacing: -0.01em; }
+a { color: var(--color-accent); text-decoration: underline; transition: color 0.2s ease; }
+a:hover { color: var(--color-accent-hover); }
+code { font-family: var(--font-mono); font-size: 0.85em; }
+button { cursor: pointer; }
+::selection { background: var(--color-accent); color: #fff; }
+.mono { font-family: var(--font-mono); }
+@media print { body { background: #fff; } .no-print { display: none !important; } }

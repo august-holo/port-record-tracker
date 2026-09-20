@@ -1,0 +1,52 @@
+# docker compose up --build
+#   web        http://localhost:3000   (Next.js exhibit UI; proxies /api and /raw to the api service)
+#   api        http://localhost:8100   (FastAPI: /, /captures/<source>, /raw/<hash>, /api/*)
+#   scheduler  captures every source on its cadence, into ./data (bind-mounted, append-only)
+#
+# Put CONTACT_EMAIL=you@example.com in .env before a sustained run; it goes in the User-Agent.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      CONTACT_EMAIL: ${CONTACT_EMAIL:-CONTACT_EMAIL_HERE}
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "8100:8100"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8100/api/sources')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    command: ["python", "-m", "src.scheduler"]
+    environment:
+      CONTACT_EMAIL: ${CONTACT_EMAIL:-CONTACT_EMAIL_HERE}
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./web
+      args:
+        ARCHIVE_API: http://api:8100
+    environment:
+      ARCHIVE_API: http://api:8100
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped

@@ -1,0 +1,17 @@
+.details { margin: 1rem 0 0; }
+.details summary { cursor: pointer; user-select: none; font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 0.5rem 0; }
+.details summary:hover { color: var(--color-accent); }
+.table { width: 100%; border-collapse: collapse; margin-top: 6px; background: var(--paper); border: 1px solid var(--line); border-radius: 3px; }
+.table th, .table td { text-align: left; padding: 7px 9px; border-top: 1px solid var(--line-soft); vertical-align: top; font-size: 0.82rem; line-height: 1.45; }
+.table th { border-top: 0; font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+.table a { word-break: break-all; font-family: var(--font-mono); font-size: 0.7rem; text-decoration: none; }
+.mock td { background: var(--mock-bg); }
+.muted { color: var(--faint); }
+.prose { background: var(--paper); border: 1px solid var(--line); border-radius: 3px; padding: 1rem 1.25rem; margin-top: 6px; font-size: 0.95rem; max-width: 820px; }
+.prose h3 { font-size: 0.95rem; margin: 0.9rem 0 0.3rem; }
+.prose h3:first-child { margin-top: 0; }
+.prose p { margin: 0 0 0.6rem; }
+.prose ol { margin: 0 0 0.6rem 1.2rem; }
+.prose li { margin-bottom: 0.3rem; }
+.prose code { background: rgba(0, 0, 0, 0.05); padding: 0 4px; border-radius: 2px; }
+.note { font-family: var(--font-mono); font-size: 0.66rem; color: var(--muted); }

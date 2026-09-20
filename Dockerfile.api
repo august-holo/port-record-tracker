@@ -1,0 +1,16 @@
+# Archive API + scheduler image. Same image, two commands (see docker-compose.yml).
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+WORKDIR /app
+
+COPY requirements.txt requirements-dev.txt ./
+RUN pip install --no-cache-dir -r requirements.txt -r requirements-dev.txt
+
+COPY src ./src
+COPY tests ./tests
+
+# data/ (SQLite + raw bodies) is a bind mount; see compose.
+VOLUME ["/app/data"]
+EXPOSE 8100
+CMD ["uvicorn", "src.web:app", "--host", "0.0.0.0", "--port", "8100"]

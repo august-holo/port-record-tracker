@@ -1,0 +1,7 @@
+.header { max-width: 1100px; margin: 0 auto; padding: 2rem 2rem 0.5rem; }
+.kicker { font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+.header h1 { font-size: 1.6rem; line-height: 1.15; display: flex; align-items: center; gap: 0.5rem; }
+.header p { margin-top: 0.6rem; color: var(--muted); font-size: 1rem; max-width: 760px; }
+.main { max-width: 1100px; margin: 0 auto; padding: 1rem 2rem 4rem; }
+@media (max-width: 600px) { .header, .main { padding-left: 1rem; padding-right: 1rem; } }
+@media print { .header { display: none; } .main { padding: 0; max-width: none; } }

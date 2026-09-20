@@ -1,0 +1,767 @@
+{
+ "MOCK": "THIS IS SYNTHETIC DATA. It demonstrates the shape of the eModal slots channel; it is not a record of the port.",
+ "mock": true,
+ "generated_at": "2026-09-20T18:44:52+00:00",
+ "endpoint": "POST /api/appointments/move/slots (mocked)",
+ "queries": [
+  {
+   "terminal": "T18",
+   "request": {
+    "facility": {
+     "facilityCode": "SEAT18"
+    },
+    "tradeType": "Empty",
+    "pickDrop": "Drop",
+    "equipment": {
+     "size": "40",
+     "type": "HC",
+     "line": "HLC"
+    }
+   },
+   "response": {
+    "status": 0,
+    "message": null,
+    "messages": [],
+    "attemptedTimeSlot": null,
+    "result": []
+   }
+  },
+  {
+   "terminal": "T18",
+   "request": {
+    "facility": {
+     "facilityCode": "SEAT18"
+    },
+    "tradeType": "Empty",
+    "pickDrop": "Drop",
+    "equipment": {
+     "size": "40",
+     "type": "HC",
+     "line": "MAE"
+    }
+   },
+   "response": {
+    "status": 0,
+    "message": null,
+    "messages": [],
+    "attemptedTimeSlot": null,
+    "result": [
+     {
+      "startTime": "2026-09-21T08:00-07:00",
+      "endTime": "2026-09-21T09:00-07:00",
+      "id": 1,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T09:00-07:00",
+      "endTime": "2026-09-21T10:00-07:00",
+      "id": 2,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T10:00-07:00",
+      "endTime": "2026-09-21T11:00-07:00",
+      "id": 3,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T11:00-07:00",
+      "endTime": "2026-09-21T12:00-07:00",
+      "id": 4,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T12:00-07:00",
+      "endTime": "2026-09-21T13:00-07:00",
+      "id": 5,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T13:00-07:00",
+      "endTime": "2026-09-21T14:00-07:00",
+      "id": 6,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T14:00-07:00",
+      "endTime": "2026-09-21T15:00-07:00",
+      "id": 7,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T15:00-07:00",
+      "endTime": "2026-09-21T16:00-07:00",
+      "id": 8,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T08:00-07:00",
+      "endTime": "2026-09-22T09:00-07:00",
+      "id": 9,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T09:00-07:00",
+      "endTime": "2026-09-22T10:00-07:00",
+      "id": 10,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T10:00-07:00",
+      "endTime": "2026-09-22T11:00-07:00",
+      "id": 11,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T11:00-07:00",
+      "endTime": "2026-09-22T12:00-07:00",
+      "id": 12,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T12:00-07:00",
+      "endTime": "2026-09-22T13:00-07:00",
+      "id": 13,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T13:00-07:00",
+      "endTime": "2026-09-22T14:00-07:00",
+      "id": 14,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T14:00-07:00",
+      "endTime": "2026-09-22T15:00-07:00",
+      "id": 15,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T15:00-07:00",
+      "endTime": "2026-09-22T16:00-07:00",
+      "id": 16,
+      "preAdvice": null
+     }
+    ]
+   }
+  },
+  {
+   "terminal": "T18",
+   "request": {
+    "facility": {
+     "facilityCode": "SEAT18"
+    },
+    "tradeType": "Import",
+    "pickDrop": "Pick",
+    "equipment": {
+     "size": "40",
+     "type": "HC",
+     "line": null
+    }
+   },
+   "response": {
+    "status": 0,
+    "message": null,
+    "messages": [],
+    "attemptedTimeSlot": null,
+    "result": [
+     {
+      "startTime": "2026-09-21T08:00-07:00",
+      "endTime": "2026-09-21T09:00-07:00",
+      "id": 1,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T09:00-07:00",
+      "endTime": "2026-09-21T10:00-07:00",
+      "id": 2,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T10:00-07:00",
+      "endTime": "2026-09-21T11:00-07:00",
+      "id": 3,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T11:00-07:00",
+      "endTime": "2026-09-21T12:00-07:00",
+      "id": 4,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T12:00-07:00",
+      "endTime": "2026-09-21T13:00-07:00",
+      "id": 5,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T13:00-07:00",
+      "endTime": "2026-09-21T14:00-07:00",
+      "id": 6,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T14:00-07:00",
+      "endTime": "2026-09-21T15:00-07:00",
+      "id": 7,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T15:00-07:00",
+      "endTime": "2026-09-21T16:00-07:00",
+      "id": 8,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T08:00-07:00",
+      "endTime": "2026-09-22T09:00-07:00",
+      "id": 9,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T09:00-07:00",
+      "endTime": "2026-09-22T10:00-07:00",
+      "id": 10,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T10:00-07:00",
+      "endTime": "2026-09-22T11:00-07:00",
+      "id": 11,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T11:00-07:00",
+      "endTime": "2026-09-22T12:00-07:00",
+      "id": 12,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T12:00-07:00",
+      "endTime": "2026-09-22T13:00-07:00",
+      "id": 13,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T13:00-07:00",
+      "endTime": "2026-09-22T14:00-07:00",
+      "id": 14,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T14:00-07:00",
+      "endTime": "2026-09-22T15:00-07:00",
+      "id": 15,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T15:00-07:00",
+      "endTime": "2026-09-22T16:00-07:00",
+      "id": 16,
+      "preAdvice": null
+     }
+    ]
+   }
+  },
+  {
+   "terminal": "T5",
+   "request": {
+    "facility": {
+     "facilityCode": "SEAT5"
+    },
+    "tradeType": "Empty",
+    "pickDrop": "Drop",
+    "equipment": {
+     "size": "40",
+     "type": "HC",
+     "line": "MSC"
+    }
+   },
+   "response": {
+    "status": 0,
+    "message": null,
+    "messages": [],
+    "attemptedTimeSlot": null,
+    "result": [
+     {
+      "startTime": "2026-09-22T08:00-07:00",
+      "endTime": "2026-09-22T09:00-07:00",
+      "id": 1,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T09:00-07:00",
+      "endTime": "2026-09-22T10:00-07:00",
+      "id": 2,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T10:00-07:00",
+      "endTime": "2026-09-22T11:00-07:00",
+      "id": 3,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T11:00-07:00",
+      "endTime": "2026-09-22T12:00-07:00",
+      "id": 4,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T12:00-07:00",
+      "endTime": "2026-09-22T13:00-07:00",
+      "id": 5,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T13:00-07:00",
+      "endTime": "2026-09-22T14:00-07:00",
+      "id": 6,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T14:00-07:00",
+      "endTime": "2026-09-22T15:00-07:00",
+      "id": 7,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T15:00-07:00",
+      "endTime": "2026-09-22T16:00-07:00",
+      "id": 8,
+      "preAdvice": null
+     }
+    ]
+   }
+  },
+  {
+   "terminal": "T5",
+   "request": {
+    "facility": {
+     "facilityCode": "SEAT5"
+    },
+    "tradeType": "Import",
+    "pickDrop": "Pick",
+    "equipment": {
+     "size": "40",
+     "type": "HC",
+     "line": null
+    }
+   },
+   "response": {
+    "status": 0,
+    "message": null,
+    "messages": [],
+    "attemptedTimeSlot": null,
+    "result": [
+     {
+      "startTime": "2026-09-22T08:00-07:00",
+      "endTime": "2026-09-22T09:00-07:00",
+      "id": 1,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T09:00-07:00",
+      "endTime": "2026-09-22T10:00-07:00",
+      "id": 2,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T10:00-07:00",
+      "endTime": "2026-09-22T11:00-07:00",
+      "id": 3,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T11:00-07:00",
+      "endTime": "2026-09-22T12:00-07:00",
+      "id": 4,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T12:00-07:00",
+      "endTime": "2026-09-22T13:00-07:00",
+      "id": 5,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T13:00-07:00",
+      "endTime": "2026-09-22T14:00-07:00",
+      "id": 6,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T14:00-07:00",
+      "endTime": "2026-09-22T15:00-07:00",
+      "id": 7,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T15:00-07:00",
+      "endTime": "2026-09-22T16:00-07:00",
+      "id": 8,
+      "preAdvice": null
+     }
+    ]
+   }
+  },
+  {
+   "terminal": "Husky",
+   "request": {
+    "facility": {
+     "facilityCode": "TACHUS"
+    },
+    "tradeType": "Empty",
+    "pickDrop": "Drop",
+    "equipment": {
+     "size": "40",
+     "type": "HC",
+     "line": "ONE"
+    }
+   },
+   "response": {
+    "status": 0,
+    "message": null,
+    "messages": [],
+    "attemptedTimeSlot": null,
+    "result": [
+     {
+      "startTime": "2026-09-21T08:00-07:00",
+      "endTime": "2026-09-21T09:00-07:00",
+      "id": 1,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T09:00-07:00",
+      "endTime": "2026-09-21T10:00-07:00",
+      "id": 2,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T10:00-07:00",
+      "endTime": "2026-09-21T11:00-07:00",
+      "id": 3,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T11:00-07:00",
+      "endTime": "2026-09-21T12:00-07:00",
+      "id": 4,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T12:00-07:00",
+      "endTime": "2026-09-21T13:00-07:00",
+      "id": 5,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T13:00-07:00",
+      "endTime": "2026-09-21T14:00-07:00",
+      "id": 6,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T14:00-07:00",
+      "endTime": "2026-09-21T15:00-07:00",
+      "id": 7,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T15:00-07:00",
+      "endTime": "2026-09-21T16:00-07:00",
+      "id": 8,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T08:00-07:00",
+      "endTime": "2026-09-22T09:00-07:00",
+      "id": 9,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T09:00-07:00",
+      "endTime": "2026-09-22T10:00-07:00",
+      "id": 10,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T10:00-07:00",
+      "endTime": "2026-09-22T11:00-07:00",
+      "id": 11,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T11:00-07:00",
+      "endTime": "2026-09-22T12:00-07:00",
+      "id": 12,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T12:00-07:00",
+      "endTime": "2026-09-22T13:00-07:00",
+      "id": 13,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T13:00-07:00",
+      "endTime": "2026-09-22T14:00-07:00",
+      "id": 14,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T14:00-07:00",
+      "endTime": "2026-09-22T15:00-07:00",
+      "id": 15,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T15:00-07:00",
+      "endTime": "2026-09-22T16:00-07:00",
+      "id": 16,
+      "preAdvice": null
+     }
+    ]
+   }
+  },
+  {
+   "terminal": "PCT",
+   "request": {
+    "facility": {
+     "facilityCode": "TACPCT"
+    },
+    "tradeType": "Import",
+    "pickDrop": "Pick",
+    "equipment": {
+     "size": "40",
+     "type": "HC",
+     "line": null
+    }
+   },
+   "response": {
+    "status": 0,
+    "message": null,
+    "messages": [],
+    "attemptedTimeSlot": null,
+    "result": [
+     {
+      "startTime": "2026-09-21T08:00-07:00",
+      "endTime": "2026-09-21T09:00-07:00",
+      "id": 1,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T09:00-07:00",
+      "endTime": "2026-09-21T10:00-07:00",
+      "id": 2,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T10:00-07:00",
+      "endTime": "2026-09-21T11:00-07:00",
+      "id": 3,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T11:00-07:00",
+      "endTime": "2026-09-21T12:00-07:00",
+      "id": 4,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T12:00-07:00",
+      "endTime": "2026-09-21T13:00-07:00",
+      "id": 5,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T13:00-07:00",
+      "endTime": "2026-09-21T14:00-07:00",
+      "id": 6,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T14:00-07:00",
+      "endTime": "2026-09-21T15:00-07:00",
+      "id": 7,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T15:00-07:00",
+      "endTime": "2026-09-21T16:00-07:00",
+      "id": 8,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T08:00-07:00",
+      "endTime": "2026-09-22T09:00-07:00",
+      "id": 9,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T09:00-07:00",
+      "endTime": "2026-09-22T10:00-07:00",
+      "id": 10,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T10:00-07:00",
+      "endTime": "2026-09-22T11:00-07:00",
+      "id": 11,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T11:00-07:00",
+      "endTime": "2026-09-22T12:00-07:00",
+      "id": 12,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T12:00-07:00",
+      "endTime": "2026-09-22T13:00-07:00",
+      "id": 13,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T13:00-07:00",
+      "endTime": "2026-09-22T14:00-07:00",
+      "id": 14,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T14:00-07:00",
+      "endTime": "2026-09-22T15:00-07:00",
+      "id": 15,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T15:00-07:00",
+      "endTime": "2026-09-22T16:00-07:00",
+      "id": 16,
+      "preAdvice": null
+     }
+    ]
+   }
+  },
+  {
+   "terminal": "WUT",
+   "request": {
+    "facility": {
+     "facilityCode": "TACWUT"
+    },
+    "tradeType": "Empty",
+    "pickDrop": "Drop",
+    "equipment": {
+     "size": "40",
+     "type": "HC",
+     "line": "HMM"
+    }
+   },
+   "response": {
+    "status": 0,
+    "message": null,
+    "messages": [],
+    "attemptedTimeSlot": null,
+    "result": [
+     {
+      "startTime": "2026-09-21T08:00-07:00",
+      "endTime": "2026-09-21T09:00-07:00",
+      "id": 1,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T09:00-07:00",
+      "endTime": "2026-09-21T10:00-07:00",
+      "id": 2,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T10:00-07:00",
+      "endTime": "2026-09-21T11:00-07:00",
+      "id": 3,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T11:00-07:00",
+      "endTime": "2026-09-21T12:00-07:00",
+      "id": 4,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T12:00-07:00",
+      "endTime": "2026-09-21T13:00-07:00",
+      "id": 5,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T13:00-07:00",
+      "endTime": "2026-09-21T14:00-07:00",
+      "id": 6,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T14:00-07:00",
+      "endTime": "2026-09-21T15:00-07:00",
+      "id": 7,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-21T15:00-07:00",
+      "endTime": "2026-09-21T16:00-07:00",
+      "id": 8,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T08:00-07:00",
+      "endTime": "2026-09-22T09:00-07:00",
+      "id": 9,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T09:00-07:00",
+      "endTime": "2026-09-22T10:00-07:00",
+      "id": 10,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T10:00-07:00",
+      "endTime": "2026-09-22T11:00-07:00",
+      "id": 11,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T11:00-07:00",
+      "endTime": "2026-09-22T12:00-07:00",
+      "id": 12,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T12:00-07:00",
+      "endTime": "2026-09-22T13:00-07:00",
+      "id": 13,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T13:00-07:00",
+      "endTime": "2026-09-22T14:00-07:00",
+      "id": 14,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T14:00-07:00",
+      "endTime": "2026-09-22T15:00-07:00",
+      "id": 15,
+      "preAdvice": null
+     },
+     {
+      "startTime": "2026-09-22T15:00-07:00",
+      "endTime": "2026-09-22T16:00-07:00",
+      "id": 16,
+      "preAdvice": null
+     }
+    ]
+   }
+  }
+ ]
+}
