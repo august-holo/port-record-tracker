@@ -8,10 +8,14 @@ cd "$(dirname "$0")/.."
 
 INSTANCE_ID=$(terraform -chdir=infra output -raw instance_id)
 BUCKET=$(terraform -chdir=infra output -raw backup_bucket)
-KEY="deploys/tsa-$(date -u +%Y%m%dT%H%M%SZ).tar.gz"
+REV=$(git rev-parse --short HEAD)
+git diff --quiet HEAD -- || REV="$REV-dirty"
+KEY="deploys/tsa-$(date -u +%Y%m%dT%H%M%SZ)-$REV.tar.gz"
 
-echo "→ packing working tree"
-tar --exclude .git --exclude .venv --exclude data --exclude node_modules \
+echo "→ packing working tree at $REV"
+echo "$REV $(date -u +%Y-%m-%dT%H:%M:%SZ)" > REVISION # lands in /opt/tsa: which code is running
+trap 'rm -f REVISION /tmp/tsa-deploy.tar.gz' EXIT
+tar --exclude .git --exclude .terraform --exclude '*.tfstate*' --exclude .env --exclude .venv --exclude data --exclude node_modules \
     --exclude .next --exclude __pycache__ \
     -czf /tmp/tsa-deploy.tar.gz .
 

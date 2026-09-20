@@ -66,6 +66,7 @@ docker compose run --rm api pytest -q        # same, inside the image
 - `src/web.py` — FastAPI app: dashboard pages, raw viewer, mounts the API
 - `src/scheduler.py` — APScheduler loop per source cadence, plus the hourly health report
 - `src/health.py` — live checks; `python -m src.health`
+- `src/manifest.py` — hourly CSV of each UTC day's captures (`data/manifests/`), synced to the write-once evidence bucket in production
 - `tests/` — parser and invariant tests; `tests/fixtures/` are frozen real captures
 - `web/` — Next.js exhibit UI (see `web/README.md`)
 - `docs/DAILY_CHECK.md` — the ten-minute manual check to run each day while it collects

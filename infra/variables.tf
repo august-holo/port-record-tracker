@@ -17,7 +17,7 @@ variable "subdomain" {
 
 variable "instance_type" {
   type    = string
-  default = "t4g.micro" # arm64; images must be built for linux/arm64
+  default = "t4g.small" # arm64. 2 GB: a t4g.micro (1 GB) runs out of memory building the Next.js image
 }
 
 variable "volume_gb" {
@@ -28,4 +28,16 @@ variable "volume_gb" {
 variable "contact_email" {
   description = "Goes into the scraper User-Agent (CONTACT_EMAIL)"
   type        = string
+}
+
+variable "healthcheck_ping_url" {
+  description = "healthchecks.io-style check URL pinged hourly by the scheduler; empty disables it"
+  type        = string
+  default     = ""
+}
+
+variable "evidence_retention_days" {
+  description = "Object Lock (governance) retention on raw bodies and capture manifests"
+  type        = number
+  default     = 365
 }

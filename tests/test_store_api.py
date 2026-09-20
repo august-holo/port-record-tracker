@@ -131,6 +131,21 @@ def test_mock_rows_are_flagged_everywhere(env):
     assert rows and all(row["row"]["mock"] is True for row in rows)
 
 
+def test_daily_manifest_lists_each_capture_with_its_hash(env):
+    import csv
+    import src.manifest as manifest
+    from datetime import date
+
+    importlib.reload(manifest)
+    a = add_capture(env, "wut_erd", "wut_erd.html", "2026-09-20T18:44:00+00:00")
+    add_capture(env, "wut_erd", "wut_erd.html", "2026-09-21T00:10:00+00:00")  # next UTC day
+    assert manifest.write_day(date(2026, 9, 20)) == 1
+    rows = list(csv.DictReader((env["dir"] / "manifests" / "captures-2026-09-20.csv").open()))
+    assert [r["id"] for r in rows] == [str(a)]
+    assert rows[0]["content_hash"] == hashlib.sha256((FIX / "wut_erd.html").read_bytes()).hexdigest()
+    assert manifest.write_day(date(2026, 9, 19)) == 0  # no captures, no file
+
+
 # ---------- exhibit semantics ----------
 
 def test_day_without_captures_is_unknown_not_fine(env):

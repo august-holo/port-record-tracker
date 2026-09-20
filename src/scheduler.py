@@ -14,7 +14,7 @@ import os
 import requests
 from apscheduler.schedulers.blocking import BlockingScheduler
 
-from . import health, store
+from . import health, manifest, store
 from .capture import active_sources, capture_source
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -75,11 +75,13 @@ def main() -> None:
                 id=f"{source_id}_peak",
             )
     sched.add_job(write_health, "interval", minutes=60, id="health")
+    sched.add_job(manifest.write_recent, "interval", minutes=60, id="manifest")
     logging.info(
         "scheduler running: %s",
         {k: f"{v['cadence_minutes']}min" for k, v in sources.items()},
     )
     write_health()
+    manifest.write_recent()
     sched.start()
 
 

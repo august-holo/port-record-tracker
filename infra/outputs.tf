@@ -17,3 +17,7 @@ output "backup_bucket" {
 output "ssm_shell" {
   value = "aws ssm start-session --target ${aws_instance.box.id}"
 }
+
+output "evidence_bucket" {
+  value = aws_s3_bucket.evidence.bucket
+}

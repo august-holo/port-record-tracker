@@ -59,7 +59,43 @@ resource "aws_s3_bucket_public_access_block" "backup" {
   restrict_public_buckets = true
 }
 
-# ── Instance role: SSM shell + backup bucket only ────────────────────
+# ── Evidence bucket: raw bodies + daily capture manifests, write-once ─
+# Object Lock (governance mode) means a stored version cannot be deleted or overwritten
+# until its retention ends, by the box or by anyone without s3:BypassGovernanceRetention.
+# S3's own object timestamps then vouch for when each page hash existed.
+# Litestream's replica stays in the backup bucket: it has to prune old snapshots.
+resource "aws_s3_bucket" "evidence" {
+  bucket_prefix       = "${local.name}-evidence-"
+  object_lock_enabled = true
+}
+
+resource "aws_s3_bucket_versioning" "evidence" {
+  bucket = aws_s3_bucket.evidence.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_object_lock_configuration" "evidence" {
+  bucket = aws_s3_bucket.evidence.id
+  rule {
+    default_retention {
+      mode = "GOVERNANCE"
+      days = var.evidence_retention_days
+    }
+  }
+  depends_on = [aws_s3_bucket_versioning.evidence]
+}
+
+resource "aws_s3_bucket_public_access_block" "evidence" {
+  bucket                  = aws_s3_bucket.evidence.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+# ── Instance role: SSM shell + the two buckets only ──────────────────
 resource "aws_iam_role" "instance" {
   name = "${local.name}-instance"
   assume_role_policy = jsonencode({
@@ -92,6 +128,27 @@ resource "aws_iam_role_policy" "backup_bucket" {
         Effect   = "Allow"
         Action   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
         Resource = "${aws_s3_bucket.backup.arn}/*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "evidence_bucket" {
+  name = "evidence-bucket"
+  role = aws_iam_role.instance.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["s3:ListBucket", "s3:GetBucketLocation"]
+        Resource = aws_s3_bucket.evidence.arn
+      },
+      {
+        # write and read back; never delete
+        Effect   = "Allow"
+        Action   = ["s3:GetObject", "s3:PutObject"]
+        Resource = "${aws_s3_bucket.evidence.arn}/*"
       }
     ]
   })
@@ -144,12 +201,18 @@ resource "aws_instance" "box" {
 
   metadata_options {
     http_tokens = "required" # IMDSv2 only
+    # Containers on docker's bridge network are one hop further from IMDS than the host.
+    # At the default of 1, litestream and raw-sync never receive the instance role's credentials.
+    http_put_response_hop_limit = 2
   }
 
   user_data = templatefile("${path.module}/user_data.sh.tpl", {
-    contact_email = var.contact_email
-    backup_bucket = aws_s3_bucket.backup.bucket
-    fqdn          = local.fqdn
+    contact_email        = var.contact_email
+    backup_bucket        = aws_s3_bucket.backup.bucket
+    evidence_bucket      = aws_s3_bucket.evidence.bucket
+    aws_region           = var.aws_region
+    fqdn                 = local.fqdn
+    healthcheck_ping_url = var.healthcheck_ping_url
   })
 
   tags = { Name = local.name }
