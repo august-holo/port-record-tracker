@@ -61,10 +61,13 @@ function EmptiesCell({ d, caps }: { d: Day; caps: Record<number, Evidence> }) {
         <EvidenceList ids={[e.from_capture]} caps={caps} />
       </>
     );
-  const refused = e.rules.filter((r) => !r.accepted).length;
+  // Returning an empty is a drop; pick-up rules are listed below but do not decide the answer.
+  const returns = e.rules.filter((r) => r.action !== "pick");
+  const refused = returns.filter((r) => !r.accepted).length;
+  const text = !returns.length ? "no return rule" : refused ? `${refused} of ${returns.length} returns refused` : "accepted";
   return (
     <>
-      <Pill answer={d.answers.empties_accepted} text={refused ? `${refused} of ${e.rules.length} refused` : "accepted"} />
+      <Pill answer={d.answers.empties_accepted} text={text} />
       <div className={styles.detail}>
         {e.rules.map((r, i) => (
           <span key={i}>
@@ -125,6 +128,8 @@ export default function Corroboration({ exhibit: x, dates }: { exhibit: Exhibit;
   const caps = Object.fromEntries(x.captures.map((c) => [c.capture_id, c])) as Record<number, Evidence>;
   const byDate = Object.fromEntries(x.days.map((d) => [d.date, d]));
   const f = x.filters;
+  // The appointment column exists only while the (mock) slots channel is switched on in the archive.
+  const showSlots = x.channels.some((c) => c.channel === "slots");
 
   return (
     <section className={styles.exhibit}>
@@ -150,9 +155,11 @@ export default function Corroboration({ exhibit: x, dates }: { exhibit: Exhibit;
             <th>
               Closure or restriction noticed? <Info info={INFO.notices} />
             </th>
-            <th>
-              Appointment available? <Info info={INFO.slots} />
-            </th>
+            {showSlots && (
+              <th>
+                Appointment available? <Info info={INFO.slots} />
+              </th>
+            )}
           </tr>
         </thead>
         <tbody>
@@ -171,10 +178,10 @@ export default function Corroboration({ exhibit: x, dates }: { exhibit: Exhibit;
                     <td><GateCell d={d} caps={caps} /></td>
                     <td><EmptiesCell d={d} caps={caps} /></td>
                     <td><NoticesCell d={d} caps={caps} /></td>
-                    <td><SlotsCell d={d} caps={caps} /></td>
+                    {showSlots && <td><SlotsCell d={d} caps={caps} /></td>}
                   </>
                 ) : (
-                  <td colSpan={4}><Pill answer={null} /></td>
+                  <td colSpan={showSlots ? 4 : 3}><Pill answer={null} /></td>
                 )}
               </tr>
             );

@@ -18,7 +18,13 @@ docker compose up --build
 
 `./data/` is bind-mounted, so captures persist across restarts and the SQLite file
 (`data/archive.db`) can be opened read-only from the host at any time. Nothing in
-`data/` is ever rewritten; the mock eModal channel is flagged `is_mock=1` in every row.
+`data/` is ever rewritten.
+
+Settings live in `.env` (see `.env.example`): `CONTACT_EMAIL`, `HEALTHCHECK_PING_URL` (hourly
+health ping to a healthchecks.io-style monitor, so a broken or stopped archive sends an email), and
+`TSA_ENABLE_MOCK`. The mock eModal appointments channel is **off by default**: not captured, not
+listed, and its column is left out of the exhibit. `TSA_ENABLE_MOCK=1` switches it on for UI work;
+its rows are flagged `is_mock=1` everywhere.
 
 ## Run for development (no Docker)
 
@@ -53,7 +59,7 @@ docker compose run --rm api pytest -q        # same, inside the image
 ## Layout
 
 - `src/store.py` — append-only SQLite captures + content-addressed raw bodies; additive migrations
-- `src/capture.py` — source registry (11 sources, one mock) and fetchers
+- `src/capture.py` — source registry (11 sources, one mock) and fetchers; requests to one host are spaced 5 s apart
 - `src/parse.py` — per-source parsers → `parsed_rows` (gate days, empty rules, notices, ERDs, turn times, slots)
 - `src/mock_emodal.py` — the labeled MOCK appointments channel
 - `src/api.py` — JSON: `/api/sources`, `/api/captures`, `/api/parsed`, `/api/exhibit`
@@ -75,4 +81,4 @@ docker compose run --rm api pytest -q        # same, inside the image
 | bulletin | NWSA trucker notices | unscheduled closures, blanket restrictions | working |
 | erd | NWSA + WUT export receiving | did the export window move | working |
 | turn_time | NWSA turn times | congestion | page is JS-rendered; numbers not yet captured |
-| slots | eModal `move/slots` | was an appointment available | MOCK until access exists |
+| slots | eModal `move/slots` | was an appointment available | MOCK, off unless `TSA_ENABLE_MOCK=1` |

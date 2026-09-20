@@ -20,7 +20,7 @@ from zoneinfo import ZoneInfo
 from fastapi import APIRouter, HTTPException, Query
 
 from . import store
-from .capture import SOURCES
+from .capture import SOURCES, active_sources
 
 router = APIRouter(prefix="/api")
 PT = ZoneInfo("America/Los_Angeles")
@@ -94,7 +94,7 @@ def sources():
     }
     conn.close()
     out = []
-    for sid, src in SOURCES.items():
+    for sid, src in active_sources().items():
         s = stats.get(sid, {})
         status = "mock" if src.get("mock") else ("working" if s.get("captures") else "no captures yet")
         if s.get("captures") and not parsed.get(sid) and not src.get("mock"):
@@ -223,14 +223,15 @@ def exhibit(
         raise HTTPException(400, "range must be 0-60 days")
 
     conn = db()
+    active = list(active_sources())  # leaves out the mock channel unless it is switched on
     # All parsed rows for this terminal or port-wide, joined to their capture.
     rows = conn.execute(
         """SELECT p.id AS pid, p.kind, p.entity_key, p.row_json, p.source_id,
                   c.id, c.fetched_at, c.content_hash, c.is_mock, c.source_id AS csource
            FROM parsed_rows p JOIN captures c ON c.id = p.capture_id
-           WHERE (p.terminal = ? OR p.terminal IS NULL)
-           ORDER BY c.fetched_at""",
-        (terminal,),
+           WHERE (p.terminal = ? OR p.terminal IS NULL) AND c.source_id IN ({})
+           ORDER BY c.fetched_at""".format(",".join("?" * len(active))),
+        (terminal, *active),
     ).fetchall()
     conn.close()
 
@@ -375,11 +376,11 @@ def exhibit(
         unscheduled = any(
             n for n in notices if any(k in (n.get("keywords") or []) for k in ("closed", "closure", "suspend"))
         )
+        # Returning an empty is a drop. Pick-up rules are shown, but they do not decide this answer.
+        return_rules = [r for r in e["rules"] if r["action"] in ("drop", "any")] if e else []
         entry["answers"] = {
             "gate_scheduled_open": (None if g is None else g["status"] == "open"),
-            "empties_accepted": (
-                None if e is None else (all(r["accepted"] for r in e["rules"]) if e["rules"] else None)
-            ),
+            "empties_accepted": (all(r["accepted"] for r in return_rules) if return_rules else None),
             "unscheduled_closure_or_restriction_noticed": unscheduled if notices else None,
             "appointments_available": (
                 None
@@ -392,7 +393,7 @@ def exhibit(
         days.append(entry)
 
     channels = []
-    for sid, src in SOURCES.items():
+    for sid, src in active_sources().items():
         if src.get("terminal") not in (None, terminal):
             continue
         n = sum(
@@ -409,6 +410,7 @@ def exhibit(
             }
         )
 
+    shown = {c["channel"] for c in channels}
     return {
         "terminal": terminal,
         "start": start,
@@ -418,7 +420,8 @@ def exhibit(
         "timezone": "America/Los_Angeles",
         "caveat": (
             "This exhibit shows what the port and terminals PUBLISHED about their state, as captured. "
-            "It does not prove per-container facts. Appointment availability is MOCK data until eModal access exists."
+            "It does not prove per-container facts."
+            + (" Appointment availability is MOCK data until eModal access exists." if "slots" in shown else "")
         ),
         "days": days,
         "channels": channels,

@@ -12,7 +12,9 @@ import logging
 import os
 import random
 import sys
+import threading
 import time
+from urllib.parse import urlsplit
 
 import requests
 
@@ -39,14 +41,16 @@ SOURCES: dict[str, dict] = {
     # --- export receiving (P25) ---
     "nwsa_erd": {
         "url": f"{NWSA}/cargo-operations/vessel-schedules-and-calendar/export-receiving-dates",
-        "cadence_minutes": 60,
+        "cadence_minutes": 30,
+        # NWSA updates this page on weekday mornings; sample faster then to pin down the minute.
+        "peak": {"minutes": 10, "hours": "6-10", "days": "mon-fri", "timezone": "America/Los_Angeles"},
         "terminal": None,
         "channel": "erd",
         "parser": "nwsa_erd",
     },
     "wut_erd": {
         "url": "https://www.uswut.com/schedule/vessel-export-receiving/",
-        "cadence_minutes": 120,
+        "cadence_minutes": 30,  # the leading indicator; NWSA's lag is measured against it
         "terminal": "WUT",
         "channel": "erd",
         "parser": "wut_erd",
@@ -123,21 +127,52 @@ SOURCES: dict[str, dict] = {
 
 TIMEOUT = 30
 RETRY_AFTER_SECONDS = 20
-MIN_SECONDS_BETWEEN_REQUESTS = 3.0  # per process; far under one request a minute per host across sources
+MIN_SECONDS_BETWEEN_REQUESTS = 5.0  # per host, enforced in _get for the scheduler and the CLI alike
+
+# The mock appointments channel is off unless TSA_ENABLE_MOCK=1: it is not captured, not listed
+# and not shown in the exhibit. Synthetic rows have no place on a public evidence page.
+MOCK_ENABLED = os.environ.get("TSA_ENABLE_MOCK") == "1"
+
+
+def active_sources() -> dict[str, dict]:
+    return {k: v for k, v in SOURCES.items() if MOCK_ENABLED or not v.get("mock")}
+
+
+_host_lock = threading.Lock()
+_host_locks: dict[str, threading.Lock] = {}
+_host_last: dict[str, float] = {}
+
+
+def _get(url: str) -> requests.Response:
+    """One GET, never closer than MIN_SECONDS_BETWEEN_REQUESTS to the previous one for the same host.
+
+    The scheduler runs sources on a thread pool and several share a cadence, so without this
+    they would hit nwseaportalliance.com in the same second.
+    """
+    host = urlsplit(url).netloc
+    with _host_lock:
+        lock = _host_locks.setdefault(host, threading.Lock())
+    with lock:
+        wait = _host_last.get(host, float("-inf")) + MIN_SECONDS_BETWEEN_REQUESTS - time.monotonic()
+        if wait > 0:
+            time.sleep(wait)
+        try:
+            return requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT)
+        finally:
+            _host_last[host] = time.monotonic()
 
 
 def _fetch(url: str) -> requests.Response:
     """GET with one retry on connection error / 5xx."""
-    headers = {"User-Agent": USER_AGENT}
     try:
-        resp = requests.get(url, headers=headers, timeout=TIMEOUT)
+        resp = _get(url)
         if resp.status_code >= 500:
             raise requests.HTTPError(f"{resp.status_code} from {url}", response=resp)
         return resp
     except (requests.ConnectionError, requests.Timeout, requests.HTTPError) as first:
         log.warning("retrying %s after %s: %s", url, RETRY_AFTER_SECONDS, first)
         time.sleep(RETRY_AFTER_SECONDS)
-        return requests.get(url, headers=headers, timeout=TIMEOUT)
+        return _get(url)
 
 
 def capture_source(source_id: str) -> int | None:
@@ -187,12 +222,11 @@ def capture_source(source_id: str) -> int | None:
 def main() -> None:
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     public_only = "--public" in sys.argv
-    targets = args or [s for s, v in SOURCES.items() if not (public_only and v.get("mock"))]
+    targets = args or [s for s, v in active_sources().items() if not (public_only and v.get("mock"))]
     for source_id in targets:
         if source_id not in SOURCES:
             sys.exit(f"unknown source: {source_id} (known: {', '.join(SOURCES)})")
         capture_source(source_id)
-        time.sleep(MIN_SECONDS_BETWEEN_REQUESTS)
 
 
 if __name__ == "__main__":

@@ -26,7 +26,7 @@ from bs4 import BeautifulSoup
 from . import store
 
 PT = ZoneInfo("America/Los_Angeles")
-PARSER_VERSION = 3
+PARSER_VERSION = 4
 
 MONTHS = {
     m: i
@@ -46,6 +46,11 @@ NOTICE_KEYWORDS = [
     "appointment", "restrict", "suspend", "turned", "dual transaction", "empty", "empties",
     "holiday", "hoot", "reefer", "cutoff", "cut-off",
 ]
+# On their own these make a paragraph a notice. The rest of NOTICE_KEYWORDS also turn up in the
+# standing appointment rules every terminal page repeats, so they count only beside a date.
+STRONG_NOTICE_KEYWORDS = {
+    "closed", "closure", "not accept", "no longer", "until further notice", "restrict", "suspend", "holiday",
+}
 
 
 # ---------- helpers ----------
@@ -360,6 +365,8 @@ def parse_terminal_page(raw: bytes, terminal: str, ref: date) -> list[dict]:
             d = parse_date_token(m.group(1), ref)
             if d:
                 dates.append(d.isoformat())
+        if not dates and not STRONG_NOTICE_KEYWORDS.intersection(hits):
+            continue  # standing boilerplate, not news
         rows.append(
             {
                 "kind": "notice",

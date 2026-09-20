@@ -14,7 +14,7 @@ from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from . import store
-from .capture import SOURCES
+from .capture import active_sources
 
 PT = ZoneInfo("America/Los_Angeles")
 DISK_LIMIT_GB = 20
@@ -37,7 +37,7 @@ def run() -> dict:
     now = _now()
     since_24h = (now - timedelta(hours=24)).isoformat(timespec="seconds")
 
-    for sid, src in SOURCES.items():
+    for sid, src in active_sources().items():
         cadence = timedelta(minutes=src["cadence_minutes"])
         last = conn.execute(
             "SELECT fetched_at FROM captures WHERE source_id = ? AND content_hash IS NOT NULL ORDER BY id DESC LIMIT 1",

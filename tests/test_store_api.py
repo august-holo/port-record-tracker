@@ -158,6 +158,45 @@ def test_exhibit_reads_gate_and_empties_with_evidence(env):
     assert [c["capture_id"] for c in x["captures"]] == [cid]
 
 
+def test_empties_answer_follows_the_drop_rule_not_the_pick_rule(env):
+    parse = env["parse"]
+    cid = add_capture(env, "t18_update", "t18_update.html", "2026-09-20T18:44:28+00:00")
+    parse.parse_capture(cid)
+
+    def answer(equipment):
+        x = env["client"].get(
+            f"/api/exhibit?terminal=T18&start=2026-09-20&end=2026-09-20&line=HLC&equipment={equipment}"
+        ).json()
+        d = x["days"][0]
+        return {(r["action"], r["accepted"]) for r in d["empties"]["rules"]}, d["answers"]["empties_accepted"]
+
+    # 45': drop refused and pick refused -> not accepted. 20': both accepted -> accepted.
+    assert answer("45HC") == ({("drop", False), ("pick", False)}, False)
+    assert answer("20") == ({("drop", True), ("pick", True)}, True)
+    # Reefers are listed for pick-up only: no return rule, so the record does not answer.
+    assert answer("REEFER") == ({("pick", True)}, None)
+
+
+def test_mock_channel_is_hidden_unless_switched_on(env, monkeypatch):
+    import src.capture as capture
+
+    parse = env["parse"]
+    cid = add_capture(env, "emodal_slots_mock", "emodal_slots_mock.json", "2026-09-20T18:44:52+00:00", is_mock=True)
+    parse.parse_capture(cid)
+    url = "/api/exhibit?terminal=T18&start=2026-09-20&end=2026-09-20"
+
+    monkeypatch.setattr(capture, "MOCK_ENABLED", False)
+    x = env["client"].get(url).json()
+    assert x["days"][0]["slots"] is None and "MOCK" not in x["caveat"]
+    assert not any(c["channel"] == "slots" for c in x["channels"])
+    assert not any(s["mock"] for s in env["client"].get("/api/sources").json()["sources"])
+
+    monkeypatch.setattr(capture, "MOCK_ENABLED", True)
+    x = env["client"].get(url).json()
+    assert x["days"][0]["slots"]["mock"] is True and "MOCK" in x["caveat"]
+    assert any(s["mock"] for s in env["client"].get("/api/sources").json()["sources"])
+
+
 def test_evening_capture_files_under_pacific_day(env):
     parse = env["parse"]
     # 02:00 UTC on the 21st is 19:00 PT on the 20th.

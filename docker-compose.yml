@@ -4,6 +4,7 @@
 #   scheduler  captures every source on its cadence, into ./data (bind-mounted, append-only)
 #
 # Put CONTACT_EMAIL=you@example.com in .env before a sustained run; it goes in the User-Agent.
+# Other .env settings are listed in .env.example.
 
 services:
   api:
@@ -12,6 +13,7 @@ services:
       dockerfile: Dockerfile.api
     environment:
       CONTACT_EMAIL: ${CONTACT_EMAIL:-CONTACT_EMAIL_HERE}
+      TSA_ENABLE_MOCK: ${TSA_ENABLE_MOCK:-0}
     volumes:
       - ./data:/app/data
     ports:
@@ -30,6 +32,8 @@ services:
     command: ["python", "-m", "src.scheduler"]
     environment:
       CONTACT_EMAIL: ${CONTACT_EMAIL:-CONTACT_EMAIL_HERE}
+      TSA_ENABLE_MOCK: ${TSA_ENABLE_MOCK:-0}
+      HEALTHCHECK_PING_URL: ${HEALTHCHECK_PING_URL:-}
     volumes:
       - ./data:/app/data
     depends_on:

@@ -27,7 +27,7 @@ export default function HowItWorks() {
           of row are: a <b>gate day</b> (terminal, date, open or closed, hours), an <b>empty rule</b> (terminal,
           line, container size, drop or pick, accepted yes or no), a <b>notice</b> (a paragraph with an operational
           keyword and any dates it mentions), an <b>export receiving window</b> (vessel, first receiving date,
-          cutoff), a <b>turn-time sample</b>, and a <b>slot check</b> (mock). Anything the parser cannot classify is
+          cutoff), and a <b>turn-time sample</b>. Anything the parser cannot classify is
           kept as a generic table row so nothing is lost. A parser that fails leaves the raw copy untouched and logs
           the error.
         </p>
@@ -42,15 +42,16 @@ export default function HowItWorks() {
           </li>
           <li>
             <b>Empties accepted for your box?</b> — the empty rules from the most recent capture taken on or before
-            that day, filtered to your line and size. A rule carried forward from an earlier day says so.
+            that day, filtered to your line and size. The answer follows the drop-off rules, since returning an
+            empty is a drop; pick-up rules are listed beside it. A rule carried forward from an earlier day says so.
           </li>
           <li>
             <b>Closure or restriction noticed?</b> — notices posted that day, or whose text mentions that day, from the
             port&apos;s bulletin page and the terminal&apos;s own page.
           </li>
           <li>
-            <b>Appointment available?</b> — slot checks made that day for this terminal. Mock until the archive has
-            access to the appointment system.
+            <b>Appointment available?</b> — not answered yet. The archive has no access to the appointment system,
+            so this column is left out.
           </li>
         </ol>
         <p>

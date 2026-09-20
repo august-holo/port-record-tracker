@@ -133,7 +133,14 @@ def test_wut_update_page_gate_closure_notice():
 def test_husky_has_notices_but_no_grid():
     rows = parse.parse_terminal_page(load("husky_update.html"), "Husky", REF)
     assert rows_of("empty_rule", rows) == []
-    assert any("appointment" in r["text"].lower() for r in rows_of("notice", rows))
+    assert any("no longer accepting chassis" in r["text"].lower() for r in rows_of("notice", rows))
+
+
+def test_standing_appointment_rules_are_not_notices(t18):
+    # The T18 page repeats ~30 paragraphs of appointment rules; only dated or closure text is news.
+    texts = [r["text"].lower() for r in rows_of("notice", t18)]
+    assert not any("missed appointments are subject to cancellation" in t for t in texts)
+    assert len(texts) < 10
 
 
 def test_pct_gate_days_and_no_grid():
