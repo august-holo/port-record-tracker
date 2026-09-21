@@ -35,6 +35,16 @@ aws s3 ls s3://$(terraform -chdir=infra output -raw backup_bucket)/litestream/ -
 aws s3 ls s3://$(terraform -chdir=infra output -raw evidence_bucket)/ --recursive | head
 ```
 
+## Updating without touching the archive
+
+- **Code:** `deploy/deploy.sh`. The tarball leaves out `data/` and `.env`, images build while the old
+  containers keep capturing, and only changed containers are swapped (a pause of seconds). Database
+  migrations are additive only. Parsed rows are derived: after a parser change, re-derive them with
+  `docker compose ... run --rm api python -m src.parse --all --force`; captures and raw bodies are never rewritten.
+- **Infrastructure:** `terraform apply` will not replace or restart the running box for a new AMI or a
+  `user_data` edit (`ignore_changes` in `main.tf`). Read the plan anyway: anything that says
+  `must be replaced` on `aws_instance.box` would delete its disk.
+
 ## Recovery (the instance is disposable)
 
 1. `terraform apply` a fresh box (or reuse), `deploy/deploy.sh`

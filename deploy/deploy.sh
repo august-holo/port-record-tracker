@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # Ship the working tree to the box and (re)start the stack — no SSH, no git remote.
-# Path: tar → S3 backup bucket → SSM command on the instance pulls + untars + restarts.
+# Path: tar → S3 backup bucket → SSM command on the instance pulls + untars + rebuilds.
+# Images are built while the old containers keep running, and only changed containers are
+# swapped, so capturing pauses for seconds, not for the length of a build. data/ and .env on
+# the box are never in the tarball, so a deploy cannot touch the archive.
 #
 # Usage: deploy/deploy.sh            (reads instance id + bucket from terraform output)
 set -euo pipefail
@@ -31,7 +34,9 @@ CMD_ID=$(aws ssm send-command \
     'set -e',
     'aws s3 cp s3://$BUCKET/$KEY /tmp/tsa-deploy.tar.gz --no-progress',
     'mkdir -p /opt/tsa && tar -xzf /tmp/tsa-deploy.tar.gz -C /opt/tsa',
-    'systemctl restart tsa.service'
+    'cd /opt/tsa',
+    'docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml build',
+    'docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d --remove-orphans'
   ]" \
   --query Command.CommandId --output text)
 

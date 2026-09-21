@@ -216,6 +216,14 @@ resource "aws_instance" "box" {
   })
 
   tags = { Name = local.name }
+
+  # The archive lives on this instance's disk. The AMI lookup above returns whatever is newest, and
+  # a new AMI id means "replace the instance", which deletes that disk. user_data only runs at first
+  # boot, and changing it would stop and start the box. So neither may touch a running instance;
+  # to rebuild on purpose, follow "Recovery" in infra/README.md.
+  lifecycle {
+    ignore_changes = [ami, user_data]
+  }
 }
 
 resource "aws_eip" "box" {
