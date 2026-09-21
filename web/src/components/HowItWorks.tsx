@@ -84,13 +84,21 @@ export default function HowItWorks() {
           but not used in this table; they belong to the export side of the story.
         </p>
         <p>
-          <b>Cameras &amp; truck turn times</b> (NWSA): what you see on that page is webcams plus two numbers per
+          <b>Truck turn times</b> (NWSA): the port&apos;s Cameras &amp; Truck Turn Times page shows two numbers per
           terminal, queue minutes and in-terminal minutes, averaged over the last hour from RFID tags on the trucks.
-          Those two numbers are not in the page&apos;s HTML; a script fills them in after the page loads, from a
-          live feed. Our capture gets the HTML before that script runs, so it contains the placeholders
-          (&quot;N/A … Connecting&quot;) and nothing else. We keep those copies because they prove what the page
-          served, but they carry no numbers, which is why there is no congestion column in the table. Capturing the
-          numbers means reading the feed behind the page, which is on the list.
+          Those numbers are not in the page&apos;s HTML; a script fills them in after the page loads, from a live
+          feed. So we read that feed directly, every 15 minutes, and store what it sent exactly as received. It feeds
+          the At the gate column. The port reports N/A when fewer than 20 trucks passed in the hour, which it says
+          may be attributed to terminal closures and lunch breaks. We also keep a copy of the page itself every two
+          hours, because it carries the port&apos;s definitions of those numbers. The webcams on that page are not
+          captured.
+        </p>
+        <p>
+          <b>eModal status page</b> (CargoSprint, which operates eModal): the incidents the operator has posted about
+          the appointment system every terminal here uses, each with its own start and end time. Feeds the notices
+          column for every terminal, and because the times are the operator&apos;s, it also covers days from before
+          this archive began. It says when the appointment system was broken. It does not say whether slots were
+          available; nothing public does.
         </p>
         <p className={styles.note}>
           Raw copies: click a hash to view a capture with scripts disabled, or ↓ to download the original bytes and
