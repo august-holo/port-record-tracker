@@ -36,7 +36,8 @@ CMD_ID=$(aws ssm send-command \
     'mkdir -p /opt/tsa && tar -xzf /tmp/tsa-deploy.tar.gz -C /opt/tsa',
     'cd /opt/tsa',
     'docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml build',
-    'docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d --remove-orphans'
+    'docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d --remove-orphans',
+    'docker image prune -f >/dev/null; docker builder prune -f --keep-storage 1GB >/dev/null; df -h / | tail -1'
   ]" \
   --query Command.CommandId --output text)
 

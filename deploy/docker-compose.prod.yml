@@ -48,6 +48,7 @@ services:
     # bucket is versioned and locked, so every hourly state of a manifest is kept.
     command:
       - |
+        until [ -d /data/raw ]; do sleep 30; done  # a new box has no captures for its first minute
         while true; do
           aws s3 sync /data/raw "s3://$${EVIDENCE_BUCKET}/raw" --size-only --no-progress
           if [ -d /data/manifests ]; then
