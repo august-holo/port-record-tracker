@@ -10,7 +10,7 @@ fails here is worth a message; nothing else is.
 import json
 import shutil
 import sys
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from . import store
@@ -82,7 +82,7 @@ def run() -> dict:
 
         if src.get("parser") == "terminal_page" and src.get("terminal") in ("T18", "T5", "PCT"):
             # These three publish a gate table; it must still cover today (catches a stale week or a broken parser).
-            horizon = date.today().isoformat()
+            horizon = now.astimezone(PT).date().isoformat()  # the terminals' "today", not the server's UTC date
             future = conn.execute(
                 "SELECT COUNT(*) FROM parsed_rows WHERE capture_id = ? AND kind = 'gate_day' AND json_extract(row_json, '$.date_iso') >= ?",
                 (latest, horizon),
