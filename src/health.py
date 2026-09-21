@@ -20,6 +20,7 @@ PT = ZoneInfo("America/Los_Angeles")
 DISK_LIMIT_GB = 20
 ERROR_LIMIT_24H = 6
 RULE_DROP_RATIO = 0.5
+GATE_TABLE_LAG_DAYS = 3
 
 
 def _now() -> datetime:
@@ -81,13 +82,16 @@ def run() -> dict:
         add("parse_errors_24h", perr == 0, f"{perr} parse errors in 24h", sid)
 
         if src.get("parser") == "terminal_page" and src.get("terminal") in ("T18", "T5", "PCT"):
-            # These three publish a gate table; it must still cover today (catches a stale week or a broken parser).
-            horizon = now.astimezone(PT).date().isoformat()  # the terminals' "today", not the server's UTC date
-            future = conn.execute(
-                "SELECT COUNT(*) FROM parsed_rows WHERE capture_id = ? AND kind = 'gate_day' AND json_extract(row_json, '$.date_iso') >= ?",
-                (latest, horizon),
+            # These three publish a gate table. A parser broken by a redesign reads no dates at all; a table
+            # whose last day is long past means the same or a page nobody is updating. A terminal that has not
+            # yet posted this week's table on a weekend or a Monday morning is neither, hence the allowance.
+            today = now.astimezone(PT).date()
+            last = conn.execute(
+                "SELECT MAX(json_extract(row_json, '$.date_iso')) FROM parsed_rows WHERE capture_id = ? AND kind = 'gate_day'",
+                (latest,),
             ).fetchone()[0]
-            add("gate_horizon", future > 0, f"{future} gate days on/after {horizon} in latest capture", sid)
+            ok = last is not None and last >= (today - timedelta(days=GATE_TABLE_LAG_DAYS)).isoformat()
+            add("gate_horizon", ok, f"gate table in latest capture runs to {last or 'no date at all'}; today is {today}", sid)
 
         if src["channel"] in ("gate", "empties") and src.get("terminal") in ("T18", "T5", "WUT"):
             # Empty-rule count should not collapse between consecutive captures.

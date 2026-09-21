@@ -169,6 +169,23 @@ def test_changes_reports_a_moved_receiving_date_and_ignores_identical_captures(e
     assert (ch[0]["after"], ch[0]["by"]) == ("2026-09-20T15:30:00+00:00", "2026-09-20T16:00:00+00:00")
 
 
+def test_gate_table_may_lag_a_weekend_but_not_a_week(env, monkeypatch):
+    import src.health as health
+    from datetime import datetime, timezone
+
+    importlib.reload(health)
+    cid = add_capture(env, "pct_update", "pct_update.html", "2026-09-20T18:44:40+00:00")  # table runs to Sun 20 Sep
+    env["parse"].parse_capture(cid)
+
+    def horizon(at):
+        monkeypatch.setattr(health, "_now", lambda: at)
+        return next(c for c in health.run()["checks"] if c["name"] == "gate_horizon" and c["source"] == "pct_update")
+
+    monday_morning = horizon(datetime(2026, 9, 21, 14, 30, tzinfo=timezone.utc))  # 07:30 PT, before the week's table is posted
+    assert monday_morning["ok"] and "2026-09-20" in monday_morning["detail"]
+    assert not horizon(datetime(2026, 9, 25, 14, 30, tzinfo=timezone.utc))["ok"]  # still last week's table on Friday
+
+
 # ---------- exhibit semantics ----------
 
 def test_day_without_captures_is_unknown_not_fine(env):
