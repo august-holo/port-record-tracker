@@ -160,7 +160,7 @@ SOURCES: dict[str, dict] = {
         "parser": "statuspage_incidents",
     },
     # --- gate cameras: the stills NWSA embeds on its cameras page "with the permission of our
-    #     terminals". Captured while gates can be open; see CAMERAS below. ---
+    #     terminals". OFF unless TSA_ENABLE_CAMERAS=1 (see active_sources). ---
     **{
         f"cam_{terminal.lower()}_{name}": {
             "url": url,
@@ -192,9 +192,17 @@ MIN_SECONDS_BETWEEN_REQUESTS = 5.0  # per host, enforced in _get for the schedul
 # and not shown in the exhibit. Synthetic rows have no place on a public evidence page.
 MOCK_ENABLED = os.environ.get("TSA_ENABLE_MOCK") == "1"
 
+# Gate camera stills are off unless TSA_ENABLE_CAMERAS=1. The terminals share those feeds with the
+# port, not with this archive, so by default they are not captured, listed, shown or served.
+CAMERAS_ENABLED = os.environ.get("TSA_ENABLE_CAMERAS") == "1"
+
 
 def active_sources() -> dict[str, dict]:
-    return {k: v for k, v in SOURCES.items() if MOCK_ENABLED or not v.get("mock")}
+    return {
+        k: v
+        for k, v in SOURCES.items()
+        if (MOCK_ENABLED or not v.get("mock")) and (CAMERAS_ENABLED or v["channel"] != "camera")
+    }
 
 
 _host_lock = threading.Lock()

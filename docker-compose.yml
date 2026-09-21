@@ -14,6 +14,7 @@ services:
     environment:
       CONTACT_EMAIL: ${CONTACT_EMAIL:-CONTACT_EMAIL_HERE}
       TSA_ENABLE_MOCK: ${TSA_ENABLE_MOCK:-0}
+      TSA_ENABLE_CAMERAS: ${TSA_ENABLE_CAMERAS:-0}
     volumes:
       - ./data:/app/data
     ports:
@@ -33,6 +34,7 @@ services:
     environment:
       CONTACT_EMAIL: ${CONTACT_EMAIL:-CONTACT_EMAIL_HERE}
       TSA_ENABLE_MOCK: ${TSA_ENABLE_MOCK:-0}
+      TSA_ENABLE_CAMERAS: ${TSA_ENABLE_CAMERAS:-0}
       HEALTHCHECK_PING_URL: ${HEALTHCHECK_PING_URL:-}
     volumes:
       - ./data:/app/data

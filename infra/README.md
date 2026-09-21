@@ -1,7 +1,6 @@
 # Infra: one arm64 box behind Route 53
 
-~$19/mo: t4g.small (~$12) + 40GB gp3 (~$3) + EIP-on-running-instance/IPv4 (~$3.6) + S3 (pennies,
-growing ~2 GB a month with the gate camera stills).
+~$17/mo: t4g.small (~$12) + 10GB gp3 (~$1) + EIP-on-running-instance/IPv4 (~$3.6) + S3 (pennies).
 
 - EC2 t4g.small (Amazon Linux 2023, arm64, 2 GB swap) — everything runs here via docker compose
 - Caddy terminates TLS for `port-record-lookup.holotekt.com` (Let's Encrypt, ports 80/443 only)

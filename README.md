@@ -22,7 +22,7 @@ docker compose up --build
 
 Settings live in `.env` (see `.env.example`): `CONTACT_EMAIL`, `HEALTHCHECK_PING_URL` (hourly
 health ping to a healthchecks.io-style monitor, so a broken or stopped archive sends an email), and
-`TSA_ENABLE_MOCK`. The mock eModal appointments channel is **off by default**: not captured, not
+`TSA_ENABLE_MOCK` and `TSA_ENABLE_CAMERAS` (both off by default). The mock eModal appointments channel is **off by default**: not captured, not
 listed, and its column is left out of the exhibit. `TSA_ENABLE_MOCK=1` switches it on for UI work;
 its rows are flagged `is_mock=1` everywhere.
 
@@ -82,6 +82,6 @@ docker compose run --rm api pytest -q        # same, inside the image
 | bulletin | NWSA trucker notices | unscheduled closures, blanket restrictions | working |
 | erd | NWSA + WUT export receiving | did the export window move | working |
 | turn_time | NWSA's RFID turn-time feed (socket.io) | congestion; N/A = fewer than 20 trucks/hour, the port's own closure signal | working |
-| camera | 11 gate camera stills linked from NWSA's cameras page | what the gate and its queue looked like | working, 05:00–19:00 PT |
+| camera | 11 gate camera stills linked from NWSA's cameras page | what the gate and its queue looked like | built, **off** unless `TSA_ENABLE_CAMERAS=1`: the terminals share these with the port, not with us |
 | appointment_system | eModal's public status page (incident history) | was the appointment platform itself down or degraded | working; history predates the archive |
 | slots | eModal `move/slots` | was an appointment available | MOCK, off unless `TSA_ENABLE_MOCK=1` |

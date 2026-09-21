@@ -18,7 +18,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import store
+from . import capture, store
 from .api import router as api_router
 from .capture import SOURCES
 
@@ -160,8 +160,8 @@ def raw(content_hash: str, download: int = 0):
     if not all(c in "0123456789abcdef" for c in content_hash) or len(content_hash) != 64:
         raise HTTPException(400, "bad hash")
     path = store.find_raw(content_hash)
-    if path is None:
-        raise HTTPException(404, "no such capture")
+    if path is None or (path.suffix in (".jpg", ".png") and not capture.CAMERAS_ENABLED):
+        raise HTTPException(404, "no such capture")  # camera stills are not served while the channel is off
     if download:
         conn = store.connect()
         cap = conn.execute(

@@ -13,6 +13,24 @@ import styles from "./Form.module.css";
 const DEFAULT_TERMINALS: Terminal[] = ["T18", "T5", "Husky", "PCT", "WUT"];
 const blank = (): CheckDate => ({ date: "", from: "", to: "" });
 
+// A result has an address: ?t=T18&line=HLC&size=40HC&d=2026-09-21&d=2026-09-22T08:00-16:00
+const DAY = /^(\d{4}-\d{2}-\d{2})(?:T(\d{2}:\d{2})?-(\d{2}:\d{2})?)?$/;
+function fromAddress(search: string) {
+  const q = new URLSearchParams(search);
+  const days = q.getAll("d").flatMap((d) => {
+    const m = DAY.exec(d);
+    return m ? [{ date: m[1], from: m[2] ?? "", to: m[3] ?? "" }] : [];
+  });
+  return { terminal: q.get("t"), line: q.get("line") ?? "", equipment: q.get("size") ?? "", days };
+}
+function toAddress(terminal: string, line: string, equipment: string, days: CheckDate[]) {
+  const q = new URLSearchParams({ t: terminal });
+  if (line) q.set("line", line);
+  if (equipment) q.set("size", equipment);
+  days.forEach((d) => q.append("d", d.from || d.to ? `${d.date}T${d.from}-${d.to}` : d.date));
+  return `?${q.toString()}`;
+}
+
 /** One terminal, one box, some days. Output: what the terminal published about itself on those days. */
 export default function ExhibitApp() {
   const [terminals, setTerminals] = useState<Terminal[]>(DEFAULT_TERMINALS);
@@ -26,10 +44,41 @@ export default function ExhibitApp() {
   const [exhibit, setExhibit] = useState<Exhibit | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [begins, setBegins] = useState<string | null>(null);
+
+  async function run(terminal: Terminal, line: string, equipment: string, days: CheckDate[]) {
+    const sorted = days.map((d) => d.date).sort();
+    setLoading(true);
+    setError(null);
+    try {
+      setExhibit(await fetchExhibit({ terminal, start: sorted[0], end: sorted[sorted.length - 1], line, equipment }));
+      window.history.replaceState(null, "", toAddress(terminal, line, equipment, days));
+    } catch (e) {
+      setExhibit(null);
+      setError((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
     fetchSources()
-      .then((s) => setTerminals(s.terminals))
+      .then((s) => {
+        setTerminals(s.terminals);
+        // The gate and empties pages only show "now", so the record starts when capturing did.
+        const firsts = s.sources.filter((x) => (x.channel === "gate" || x.channel === "empties") && x.first).map((x) => x.first as string);
+        if (firsts.length) setBegins(firsts.sort()[0]);
+        // Opened from a link to a result: fill the form in and run it.
+        const a = fromAddress(window.location.search);
+        if (a.terminal && s.terminals.includes(a.terminal as Terminal) && a.days.length) {
+          setTerminal(a.terminal as Terminal);
+          setLine(a.line);
+          setEquipment(a.equipment);
+          setRows(a.days);
+          setWindowed(a.days.map((d) => Boolean(d.from || d.to)));
+          void run(a.terminal as Terminal, a.line, a.equipment, a.days);
+        }
+      })
       .catch((e: Error) => setError(`Archive API unreachable: ${e.message}`));
   }, []);
 
@@ -80,19 +129,9 @@ export default function ExhibitApp() {
       setError("Add at least one date.");
       return;
     }
-    setLoading(true);
-    setError(null);
-    try {
-      const start = dates[0].date;
-      const end = dates[dates.length - 1].date;
-      setExhibit(await fetchExhibit({ terminal, start, end, line, equipment }));
-    } catch (e) {
-      setExhibit(null);
-      setError((e as Error).message);
-    } finally {
-      setLoading(false);
-    }
+    await run(terminal, line, equipment, dates);
   }
+
 
   return (
     <>
@@ -176,6 +215,14 @@ export default function ExhibitApp() {
           <button type="submit" disabled={loading || !dates.length}>
             {loading ? "Checking…" : "Check the record"}
           </button>
+          {begins && (
+            <p className={styles.begins}>
+              The record begins{" "}
+              <b>{new Date(begins).toLocaleDateString("en-US", { timeZone: "America/Los_Angeles", dateStyle: "long" })}</b>. The
+              terminals&apos; pages only ever show the present, so earlier days read <em>unknown</em>; nothing can be
+              recovered for them. After a check, this page&apos;s address links straight to the result.
+            </p>
+          )}
         </div>
       </form>
       <Channels />

@@ -21,9 +21,9 @@ variable "instance_type" {
 }
 
 variable "volume_gb" {
-  description = "Root volume. Gate camera stills add roughly 2 GB a month"
+  description = "Root volume. Raise it if gate cameras are switched on (roughly 2 GB a month)"
   type        = number
-  default     = 40
+  default     = 10
 }
 
 variable "contact_email" {

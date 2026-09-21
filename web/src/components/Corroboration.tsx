@@ -18,21 +18,38 @@ function Pill({ answer, text, mock }: { answer: boolean | null; text?: string; m
   );
 }
 
+function EvidenceLine({ c }: { c: Evidence }) {
+  return (
+    <div>
+      #{c.capture_id} · {fmt(c.fetched_at_pt)} PT ·{" "}
+      <a href={`/raw/${c.hash}`} target="_blank" rel="noreferrer" title="view as captured">
+        {c.hash.slice(0, 12)}
+      </a>{" "}
+      <a href={`/raw/${c.hash}?download=1`} title="download the original file">↓</a>
+      {c.mock ? " · MOCK" : ""}
+    </div>
+  );
+}
+
+/** The captures an answer was read from. Many captures usually agree; show the first and last, fold the rest. */
 function EvidenceList({ ids, caps }: { ids: number[]; caps: Record<number, Evidence> }) {
   const rows = Array.from(new Set(ids)).map((id) => caps[id]).filter(Boolean);
   if (!rows.length) return null;
+  if (rows.length <= 3)
+    return (
+      <div className={styles.ev}>
+        {rows.map((c) => <EvidenceLine key={c.capture_id} c={c} />)}
+      </div>
+    );
+  const middle = rows.slice(1, -1);
   return (
     <div className={styles.ev}>
-      {rows.map((c) => (
-        <div key={c.capture_id}>
-          #{c.capture_id} · {fmt(c.fetched_at_pt)} PT ·{" "}
-          <a href={`/raw/${c.hash}`} target="_blank" rel="noreferrer" title="view as captured">
-            {c.hash.slice(0, 12)}
-          </a>{" "}
-          <a href={`/raw/${c.hash}?download=1`} title="download the original file">↓</a>
-          {c.mock ? " · MOCK" : ""}
-        </div>
-      ))}
+      <EvidenceLine c={rows[0]} />
+      <details>
+        <summary>{middle.length} more captures in between say the same</summary>
+        {middle.map((c) => <EvidenceLine key={c.capture_id} c={c} />)}
+      </details>
+      <EvidenceLine c={rows[rows.length - 1]} />
     </div>
   );
 }

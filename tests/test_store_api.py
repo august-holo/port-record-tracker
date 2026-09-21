@@ -146,6 +146,29 @@ def test_daily_manifest_lists_each_capture_with_its_hash(env):
     assert manifest.write_day(date(2026, 9, 19)) == 0  # no captures, no file
 
 
+def test_changes_reports_a_moved_receiving_date_and_ignores_identical_captures(env):
+    import src.changes as changes
+
+    importlib.reload(changes)
+    store, parse = env["store"], env["parse"]
+    original = (FIX / "wut_erd.html").read_bytes()
+    assert original.count(b"09-23-2026 0700") >= 1
+    moved = original.replace(b"09-23-2026 0700", b"09-22-2026 0700", 1)
+    for body, at in ((original, "2026-09-20T15:00:00+00:00"), (original, "2026-09-20T15:30:00+00:00"), (moved, "2026-09-20T16:00:00+00:00")):
+        conn = store.connect()
+        cid = store.record_capture(conn, "wut_erd", "https://www.uswut.com/schedule/vessel-export-receiving/", 200, store.store_raw(body))
+        conn.execute("UPDATE captures SET fetched_at = ? WHERE id = ?", (at, cid))
+        conn.commit()
+        conn.close()
+        parse.parse_capture(cid)
+    conn = store.connect()
+    n, ch = changes.changes_for(conn, "wut_erd")
+    conn.close()
+    assert n == 3 and len(ch) == 1
+    assert ch[0]["fields"]["erd"] == ("09-23-2026 0700", "09-22-2026 0700")
+    assert (ch[0]["after"], ch[0]["by"]) == ("2026-09-20T15:30:00+00:00", "2026-09-20T16:00:00+00:00")
+
+
 # ---------- exhibit semantics ----------
 
 def test_day_without_captures_is_unknown_not_fine(env):
@@ -212,7 +235,10 @@ def test_mock_channel_is_hidden_unless_switched_on(env, monkeypatch):
     assert any(s["mock"] for s in env["client"].get("/api/sources").json()["sources"])
 
 
-def test_exhibit_shows_feed_readings_and_camera_frames_not_the_placeholder_page(env):
+def test_exhibit_shows_feed_readings_and_camera_frames_not_the_placeholder_page(env, monkeypatch):
+    import src.capture as capture
+
+    monkeypatch.setattr(capture, "CAMERAS_ENABLED", True)
     parse = env["parse"]
     store = env["store"]
     for sid, fx in (("nwsa_turn_times", "nwsa_turn_times.html"), ("nwsa_turn_feed", "nwsa_turn_feed.txt")):
@@ -237,6 +263,13 @@ def test_exhibit_shows_feed_readings_and_camera_frames_not_the_placeholder_page(
     t18 = env["client"].get("/api/exhibit?terminal=T18&start=2026-09-20&end=2026-09-20").json()["days"][0]
     assert t18["turn_times"]["na_samples"] == 1 and t18["answers"]["trucks_moving"] is False
     assert t18["cameras"] is None
+
+    # Cameras are off by default: frames already held are neither shown nor served; readings stay.
+    monkeypatch.setattr(capture, "CAMERAS_ENABLED", False)
+    d = env["client"].get("/api/exhibit?terminal=Husky&start=2026-09-20&end=2026-09-20").json()["days"][0]
+    assert d["cameras"] is None and d["turn_times"]["samples"] == 1
+    assert env["client"].get(f"/raw/{h}").status_code == 404
+    assert not any(s["channel"] == "camera" for s in env["client"].get("/api/sources").json()["sources"])
 
 
 def test_exhibit_shows_an_appointment_system_outage_from_before_the_archive_began(env):
