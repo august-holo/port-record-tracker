@@ -22,6 +22,11 @@ curl -fsSL "https://github.com/docker/compose/releases/download/v5.5.1/docker-co
   -o /usr/local/lib/docker/cli-plugins/docker-compose
 chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 
+# buildx plugin: compose v5 builds through it and needs 0.17+; AL2023's docker package has none
+curl -fsSL "https://github.com/docker/buildx/releases/download/v0.37.1/buildx-v0.37.1.linux-arm64" \
+  -o /usr/local/lib/docker/cli-plugins/docker-buildx
+chmod +x /usr/local/lib/docker/cli-plugins/docker-buildx
+
 mkdir -p /opt/tsa/data
 cat > /opt/tsa/.env <<EOF
 CONTACT_EMAIL=${contact_email}

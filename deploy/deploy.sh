@@ -18,7 +18,7 @@ KEY="deploys/tsa-$(date -u +%Y%m%dT%H%M%SZ)-$REV.tar.gz"
 echo "→ packing working tree at $REV"
 echo "$REV $(date -u +%Y-%m-%dT%H:%M:%SZ)" > REVISION # lands in /opt/tsa: which code is running
 trap 'rm -f REVISION /tmp/tsa-deploy.tar.gz' EXIT
-tar --exclude .git --exclude .terraform --exclude '*.tfstate*' --exclude .env --exclude .venv --exclude data --exclude node_modules \
+COPYFILE_DISABLE=1 tar --no-xattrs --exclude .git --exclude .terraform --exclude '*.tfstate*' --exclude .env --exclude .venv --exclude data --exclude node_modules \
     --exclude .next --exclude __pycache__ \
     -czf /tmp/tsa-deploy.tar.gz .
 
@@ -42,4 +42,4 @@ CMD_ID=$(aws ssm send-command \
 
 aws ssm wait command-executed --command-id "$CMD_ID" --instance-id "$INSTANCE_ID" || true
 aws ssm get-command-invocation --command-id "$CMD_ID" --instance-id "$INSTANCE_ID" \
-  --query '{status: Status, stdout: StandardOutputContent, stderr: StandardErrorContent}' --output table
+  --query '[Status, StandardOutputContent, StandardErrorContent]' --output text
